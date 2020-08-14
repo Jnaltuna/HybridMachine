@@ -8,7 +8,7 @@ class ApnLa:
         if loadModified:
             self.rdp = Rdp(True)
             clusterList = self.rdp.clusterlist
-            updateT = self.rdp.updateT
+            updateT = self.rdp.getUpdateT()
         else:
             self.rdp = Rdp(False)
             clusterList = self.rdp.defineClusterList()

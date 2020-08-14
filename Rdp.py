@@ -1,4 +1,5 @@
 import json
+import numpy as np
 
 
 class Rdp:
@@ -17,31 +18,81 @@ class Rdp:
         self.initFromFile(self.FILENAME)
         self.clusterlist = self.defineClusterList(self.conflictList)
 
+        self.fire(0)
+
     def initFromFile(self, fileName):
         json_file = open(fileName, "r")
         json_data = json.load(json_file)
-        # json_file.close()
+        json_file.close()
 
         self.conflictList = json_data["Conflictos"]
         self.updateT = json_data["UpdateT"]
-        self.iMatrix = json_data["Incidencia"]
-        self.iPlusMatrix = json_data["I+"]
-        self.iMinusMatrix = json_data["I-"]
-        self.inhibitionMatrix = json_data["Inhibicion"]
-        self.costsMatrix = json_data["Costos"]
-        self.marking = json_data["Marcado"]
+        self.iMatrix = np.array(json_data["Incidencia"])
+        self.iPlusMatrix = np.array(json_data["I+"])
+        self.iMinusMatrix = np.array(json_data["I-"])
+        self.inhibitionMatrix = np.array(json_data["Inhibicion"])
+        self.costsMatrix = np.array(json_data["Costos"])
+        self.marking = np.array(json_data["Marcado"])
 
-    def getUpdateT(self, json_data):
-        return
+    def getUpdateT(self):
+        updateT = [None]
+        for x in self.updateT:
+            transition = int(x.replace('T', '')) - 1
+            updateT.append(transition)
+        return updateT
 
     def defineClusterList(self, conflicts):
-        # create cluster list based on conflicts
-        clusterList = []
-        clusterList.append([])
-        for x in conflicts:
-            clusterList.append([])
-        print(clusterList)
 
-    def modifyNet(self):
+        tempList = []
+        for x in conflicts:
+            tempList.append(x[1])
+
+        conflictList = []
+        usedTransitions = []
+        for x in tempList:
+            a = []
+            for y in x:
+                transition = int(y.replace('T', '')) - 1
+                a.append(transition)
+                usedTransitions.append(transition)
+            conflictList.append(a)
+
+        numT = self.iMatrix.shape[1]
+        a = []
+        for T in range(numT):
+            if usedTransitions.count(T) == 0:
+                a.append(T)
+        conflictList.insert(0, a)
+        return conflictList
+
+    def modifyNet(self):  # TODO
         # define conflicts and add places/transitions
         print('')
+
+    def calcularSensibilizadas(self):
+
+        # Marking restrictions
+
+        T = self.iMinusMatrix.transpose()
+        enabled = np.full(len(T), True)
+
+        for row in range(len(T)):
+            for i in range(len(T[row])):
+                if(self.marking[i] < T[row][i]):
+                    enabled[row] = False
+                    break
+
+        # Inhibition restrictions
+        T = self.inhibitionMatrix.transpose()
+
+        for row in range(len(T)):
+            for i in range(len(T[row])):
+                if(T[row][i] != 0 and T[row][i] < self.marking[i]):
+                    enabled[row] = False
+                    break
+
+        return enabled
+
+    def fire(self, numTransicion):  # TODO
+        self.marking = self.marking + self.iMatrix[:, numTransicion]
+        return self.costsMatrix[numTransicion]
