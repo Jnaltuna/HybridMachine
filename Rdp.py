@@ -18,8 +18,6 @@ class Rdp:
         self.initFromFile(self.FILENAME)
         self.clusterlist = self.defineClusterList(self.conflictList)
 
-        self.fire(0)
-
     def initFromFile(self, fileName):
         json_file = open(fileName, "r")
         json_data = json.load(json_file)

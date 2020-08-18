@@ -1,5 +1,6 @@
 from Rdp import Rdp
 from ClusterManager import ClusterManager
+import numpy as np
 
 
 class ApnLa:
@@ -15,3 +16,20 @@ class ApnLa:
             print('Implementar luego')
 
         self.clusterManager = ClusterManager(clusterList, updateT)
+
+        # TODO test
+        test = [False, True, False, False, False, False,
+                False, False, False, False, False, False]
+
+        print(self.clusterManager.resolveConflict(1, test))
+
+    def fireNext(self):
+
+        enabled = self.rdp.calcularSensibilizadas()
+
+        selectedCluster = self.clusterManager.selectCluster(enabled)
+
+        if selectedCluster == 0:
+            print('')
+        else:
+            print('')
