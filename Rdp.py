@@ -13,7 +13,7 @@ class Rdp:
         self.iPlusMatrix = []
         self.iMinusMatrix = []
         self.inhibitionMatrix = []
-        self.costsMatrix = []
+        self.costVector = []
         self.marking = []
         self.initFromFile(self.FILENAME)
         self.clusterlist = self.defineClusterList(self.conflictList)
@@ -29,7 +29,7 @@ class Rdp:
         self.iPlusMatrix = np.array(json_data["I+"])
         self.iMinusMatrix = np.array(json_data["I-"])
         self.inhibitionMatrix = np.array(json_data["Inhibicion"])
-        self.costsMatrix = np.array(json_data["Costos"])
+        self.costVector = np.array(json_data["Costos"])
         self.marking = np.array(json_data["Marcado"])
 
     def getUpdateT(self):
@@ -91,6 +91,7 @@ class Rdp:
 
         return enabled
 
-    def fire(self, numTransicion):  # TODO
-        self.marking = self.marking + self.iMatrix[:, numTransicion]
-        return self.costsMatrix[numTransicion]
+    def fire(self, numTransicion):
+        self.marking = self.marking + \
+            self.iMatrix[:, numTransicion]
+        return self.costVector[numTransicion]

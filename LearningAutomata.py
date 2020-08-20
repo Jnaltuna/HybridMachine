@@ -2,7 +2,7 @@ import numpy as np
 import random
 
 a = 0.1  # or 0.05
-b = 0
+b = 0.05
 
 
 class LearningAutomata:
@@ -43,7 +43,7 @@ class LearningAutomata:
     def execute(self, enabledActions):
         self.enabledActions = enabledActions
         # Escalado de probabilidades
-        print('Enabled T: ', enabledActions)
+        #print('Enabled T: ', enabledActions)
 
         K = 0
 
@@ -51,7 +51,6 @@ class LearningAutomata:
             K += self.probabilityVector[self.actionList.index(action)]
 
         self.K = K
-        print('K: ', K)
 
         scaledProbVector = np.empty(len(enabledActions))
 
@@ -59,10 +58,9 @@ class LearningAutomata:
             scaledProbVector[i] = self.probabilityVector[self.actionList.index(
                 enabledActions[i])] / K
         self.scaledProbabilityVector = scaledProbVector
-        print('Scaled: ', scaledProbVector)
+        print('Scaled: ', scaledProbVector, 'K: ', K)
 
         self.firedAction = random.choices(
-            enabledActions, scaledProbVector, k=1)
-        print('choices: ', self.firedAction)
+            enabledActions, scaledProbVector, k=1)[-1]
 
         return self.firedAction

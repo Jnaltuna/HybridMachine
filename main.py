@@ -3,13 +3,12 @@ from ClusterManager import ClusterManager
 from Cluster import Cluster
 from LearningAutomata import LearningAutomata
 
-#test = ApnLa()
-#test1 = ApnLa()
-#
-# test.z.append(5)
-# print(test.z)
-# print(test1.z)
 
 loadModified = True
 
 apn = ApnLa(loadModified)
+
+for i in range(2000):
+    apn.fireNext()
+    if(i == 2000):
+        apn.switcharoo()

@@ -17,19 +17,17 @@ class ApnLa:
 
         self.clusterManager = ClusterManager(clusterList, updateT)
 
-        # TODO test
-        test = [False, True, False, False, False, False,
-                False, False, False, False, False, False]
-
-        print(self.clusterManager.resolveConflict(1, test))
-
     def fireNext(self):
 
-        enabled = self.rdp.calcularSensibilizadas()
+        enabledT = self.rdp.calcularSensibilizadas()
 
-        selectedCluster = self.clusterManager.selectCluster(enabled)
+        fireTransition = self.clusterManager.getFireTransition(enabledT)
+        print('Fired Transition:', fireTransition)
+        firedCost = self.rdp.fire(fireTransition)
 
-        if selectedCluster == 0:
-            print('')
-        else:
-            print('')
+        self.clusterManager.updateCost(firedCost, fireTransition)
+
+        return
+
+    def switcharoo(self):
+        self.rdp.costVector[0] = 10
