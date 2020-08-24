@@ -15,22 +15,31 @@ class Rdp:
         self.inhibitionMatrix = []
         self.costVector = []
         self.marking = []
-        self.initFromFile(self.FILENAME)
+        self.nPlaces = 0
+        self.nTransitions = 0
+        self.initFromFile(self.FILENAME, loadModified)
+
+        # if loadModified == False:
+        self.modifyNet()
         self.clusterlist = self.defineClusterList(self.conflictList)
 
-    def initFromFile(self, fileName):
+    def initFromFile(self, fileName, loadModified):
         json_file = open(fileName, "r")
         json_data = json.load(json_file)
         json_file.close()
 
-        self.conflictList = json_data["Conflictos"]
-        self.updateT = json_data["UpdateT"]
+        if loadModified == True:
+            self.conflictList = json_data["Conflictos"]
+            self.updateT = json_data["UpdateT"]
         self.iMatrix = np.array(json_data["Incidencia"])
         self.iPlusMatrix = np.array(json_data["I+"])
         self.iMinusMatrix = np.array(json_data["I-"])
         self.inhibitionMatrix = np.array(json_data["Inhibicion"])
         self.costVector = np.array(json_data["Costos"])
         self.marking = np.array(json_data["Marcado"])
+
+        self.nPlaces = self.iMatrix.shape[0]
+        self.nTransitions = self.iMatrix.shape[1]
 
     def getUpdateT(self):
         updateT = [None]
@@ -65,7 +74,74 @@ class Rdp:
 
     def modifyNet(self):  # TODO
         # define conflicts and add places/transitions
-        print('')
+        initConflicts = self.identifyConflicts()
+        finalConflicts = self.joinConflicts(initConflicts)
+
+        #conflictList = []
+        # for row in finalConflicts:
+        #    conflict = []
+        #    for i in range(len(row)):
+        #        if row[i] > 0:
+        #            conflict.append(i)
+        #    conflictList.append(conflict)
+        #self.conflictList = conflictList
+        print('Conflict', finalConflicts)
+
+    def identifyConflicts(self):
+
+        conflictMatrix = []
+        for row in self.iMinusMatrix:
+            conflict = []
+            for t in range(len(row)):
+                if (row[t] > 0):
+                    conflict.append(t)
+            if (len(conflict) > 1):
+                conflictRow = [0] * self.nTransitions
+                for t in conflict:
+                    conflictRow[t] = 1
+                conflictMatrix.append(conflictRow)
+                # conflictMatrix.append(conflict)
+
+        # return conflictMatrix
+        return np.asarray(conflictMatrix)
+
+    def joinConflicts(self, conflictMatrix):
+
+        for i in range(self.nTransitions):
+            shared = []
+            column = conflictMatrix[:, i]
+            for j in range(len(column)):
+                if(column[j] > 0):
+                    shared.append(j)
+            if(len(shared) > 1):
+                for row in range(1, len(shared)):
+                    conflictMatrix[shared[0]] = conflictMatrix[shared[0]
+                                                               ] + conflictMatrix[shared[row]]
+                    conflictMatrix = np.delete(
+                        conflictMatrix, shared[row], axis=0)
+
+        # conflicts = []
+        # for i in range(len(conflictMatrix)):
+        #     for j in range(len(conflictMatrix)):
+        #         if i != j:
+        #             for element in conflictMatrix[i]:
+        #                 if element in conflictMatrix[j]:
+        #                     # conflictMatrix[i] = conflictMatrix[i] + \
+        #                     #    list(
+        #                     #        set(conflictMatrix[j]) - set(conflictMatrix[i]))
+        #                     conflicts.append(conflictMatrix[i] + list(
+        #                         set(conflictMatrix[j]) - set(conflictMatrix[i])))
+        # print('joined: ', conflicts)
+
+        potentialConflicts = []
+        for row in conflictMatrix:
+            conflict = []
+            for i in range(len(row)):
+                if(row[i] > 0):
+                    conflict.append('T' + str(i+1))
+            potentialConflicts.append(conflict)
+
+        return potentialConflicts
 
     def calcularSensibilizadas(self):
 

@@ -12,7 +12,7 @@ class ApnLa:
             updateT = self.rdp.getUpdateT()
         else:
             self.rdp = Rdp(False)
-            clusterList = self.rdp.defineClusterList()
+            clusterList = self.rdp.clusterlist
             print('Implementar luego')
 
         self.clusterManager = ClusterManager(clusterList, updateT)

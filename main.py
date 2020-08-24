@@ -8,7 +8,7 @@ loadModified = True
 
 apn = ApnLa(loadModified)
 
-for i in range(2000):
-    apn.fireNext()
-    if(i == 2000):
-        apn.switcharoo()
+# for i in range(2000):
+#    apn.fireNext()
+#    if(i == 2000):
+#        apn.switcharoo()
