@@ -77,14 +77,12 @@ class Rdp:
         initConflicts = self.identifyConflicts()
         finalConflicts = self.joinConflicts(initConflicts)
 
-        #conflictList = []
-        # for row in finalConflicts:
-        #    conflict = []
-        #    for i in range(len(row)):
-        #        if row[i] > 0:
-        #            conflict.append(i)
-        #    conflictList.append(conflict)
-        #self.conflictList = conflictList
+        for conflict in finalConflicts:
+            self.insertPlacesTransitions(conflict)
+
+        # self.nPlaces += 2
+        # self.nTransitions += 1
+
         print('Conflict', finalConflicts)
 
     def identifyConflicts(self):
@@ -108,6 +106,7 @@ class Rdp:
     def joinConflicts(self, conflictMatrix):
 
         for i in range(self.nTransitions):
+            preplaces = []
             shared = []
             column = conflictMatrix[:, i]
             for j in range(len(column)):
@@ -142,6 +141,34 @@ class Rdp:
             potentialConflicts.append(conflict)
 
         return potentialConflicts
+
+    def insertPlacesTransitions(self, conflict):
+
+        newiMinus = self.addRowsColumns(self.iMinusMatrix)
+        newiPlus = self.addRowsColumns(self.iPlusMatrix)
+        newInhibition = self.addRowsColumns(self.inhibitionMatrix)
+
+        # Para cada matriz -> 2 filas, 1 col. Marcado 2 col. Costo 1 col
+        # Matriz I-
+        # 1er fila, 1 en col de la T agregada
+        # 2da fila, 1 en col de las T del conflicto
+        # Matriz I+
+        # 1er fila: plazas de entradas compartidas de las T del conflicto. Buscar T que entran a esas plazas.
+        # 2da fila: 1 en col de las T del conflicto
+        # I: sumar ambas
+        # Inhibicion:
+        # 1er fila: todos ceros
+        # 2da fila: 1 en col de la T agergada
+        # Marcado: 1 token en 2da col agregada si alguna plaza compartida tiene token
+        print('')
+
+    def addRowsColumns(self, matrix):
+        newMatrix = np.append(matrix, np.zeros(
+            (self.nPlaces, 1)), axis=1)
+
+        newMatrix = np.append(newMatrix, np.zeros(
+            (2, self.nTransitions+1)), axis=0)
+        return newMatrix
 
     def calcularSensibilizadas(self):
 
