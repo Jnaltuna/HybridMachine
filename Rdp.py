@@ -4,10 +4,11 @@ import numpy as np
 
 class Rdp:
 
-    FILENAME = "petrinet.json"
+    #FILENAME = "petrinet.json"
+    FILENAME = "PNunmodified.json"
 
     def __init__(self, loadModified):
-        self.updateT = []
+        self.updateT = [None]
         self.conflictList = []
         self.iMatrix = []
         self.iPlusMatrix = []
@@ -19,8 +20,8 @@ class Rdp:
         self.nTransitions = 0
         self.initFromFile(self.FILENAME, loadModified)
 
-        # if loadModified == False:
-        self.modifyNet()
+        if loadModified == False:
+            self.modifyNet()
         self.clusterlist = self.defineClusterList(self.conflictList)
 
     def initFromFile(self, fileName, loadModified):
@@ -29,61 +30,52 @@ class Rdp:
         json_file.close()
 
         if loadModified == True:
-            self.conflictList = json_data["Conflictos"]
-            self.updateT = json_data["UpdateT"]
-        self.iMatrix = np.array(json_data["Incidencia"])
+            #self.conflictList = json_data["Conflictos"]
+            #self.updateT = json_data["UpdateT"]
+            conflictList = json_data["Conflictos"]
+            updateT = json_data["UpdateT"]
+            for conflict in conflictList:
+                self.conflictList.append(self.parseTransitionsList(conflict))
+            self.updateT.extend(self.parseTransitionsList(updateT))
+            self.iMatrix = np.array(json_data["Incidencia"])
+
         self.iPlusMatrix = np.array(json_data["I+"])
         self.iMinusMatrix = np.array(json_data["I-"])
         self.inhibitionMatrix = np.array(json_data["Inhibicion"])
         self.costVector = np.array(json_data["Costos"])
         self.marking = np.array(json_data["Marcado"])
 
-        self.nPlaces = self.iMatrix.shape[0]
-        self.nTransitions = self.iMatrix.shape[1]
+        self.nPlaces = self.iPlusMatrix.shape[0]
+        self.nTransitions = self.iPlusMatrix.shape[1]
 
-    def getUpdateT(self):
-        updateT = [None]
-        for x in self.updateT:
-            transition = int(x.replace('T', '')) - 1
-            updateT.append(transition)
-        return updateT
+    def parseTransitionsList(self, tList):
+        newtList = []
+        for transition in tList:
+            transition = int(transition.replace('T', '')) - 1
+            newtList.append(transition)
+        return newtList
 
-    def defineClusterList(self, conflicts):
-
-        tempList = []
-        for x in conflicts:
-            tempList.append(x[1])
-
-        conflictList = []
+    def defineClusterList(self, conflicts):  # TODO needs testings
+        print('Conflicts', conflicts)
         usedTransitions = []
-        for x in tempList:
-            a = []
-            for y in x:
-                transition = int(y.replace('T', '')) - 1
-                a.append(transition)
-                usedTransitions.append(transition)
-            conflictList.append(a)
+        for conflict in conflicts:
+            usedTransitions.extend(conflict)
 
-        numT = self.iMatrix.shape[1]
-        a = []
-        for T in range(numT):
+        clusterZ = []
+        for T in range(self.nTransitions):
             if usedTransitions.count(T) == 0:
-                a.append(T)
-        conflictList.insert(0, a)
+                clusterZ.append(T)
+        conflictList = conflicts
+        conflictList.insert(0, clusterZ)
         return conflictList
 
     def modifyNet(self):  # TODO
         # define conflicts and add places/transitions
         initConflicts = self.identifyConflicts()
-        finalConflicts = self.joinConflicts(initConflicts)
+        self.conflictList = self.joinConflicts(initConflicts)
 
-        for conflict in finalConflicts:
+        for conflict in self.conflictList:
             self.insertPlacesTransitions(conflict)
-
-        # self.nPlaces += 2
-        # self.nTransitions += 1
-
-        print('Conflict', finalConflicts)
 
     def identifyConflicts(self):
 
@@ -106,7 +98,6 @@ class Rdp:
     def joinConflicts(self, conflictMatrix):
 
         for i in range(self.nTransitions):
-            preplaces = []
             shared = []
             column = conflictMatrix[:, i]
             for j in range(len(column)):
@@ -137,30 +128,77 @@ class Rdp:
             conflict = []
             for i in range(len(row)):
                 if(row[i] > 0):
-                    conflict.append('T' + str(i+1))
+                    conflict.append(i)
             potentialConflicts.append(conflict)
 
         return potentialConflicts
 
     def insertPlacesTransitions(self, conflict):
 
-        newiMinus = self.addRowsColumns(self.iMinusMatrix)
-        newiPlus = self.addRowsColumns(self.iPlusMatrix)
+        # Para cada matriz -> 2 filas, 1 col. Marcado 2 col. Costo 1 col
+        newIMinus = self.addRowsColumns(self.iMinusMatrix)
+        newIPlus = self.addRowsColumns(self.iPlusMatrix)
         newInhibition = self.addRowsColumns(self.inhibitionMatrix)
 
-        # Para cada matriz -> 2 filas, 1 col. Marcado 2 col. Costo 1 col
         # Matriz I-
         # 1er fila, 1 en col de la T agregada
+        newIMinus[-2, -1] = 1
         # 2da fila, 1 en col de las T del conflicto
+        for T in conflict:
+            print(T)
+            newIMinus[-1, T] = 1
+
         # Matriz I+
         # 1er fila: plazas de entradas compartidas de las T del conflicto. Buscar T que entran a esas plazas.
-        # 2da fila: 1 en col de las T del conflicto
+        sharedPlaces = []
+        for T in conflict:
+            sharedPlaces.append(self.iMinusMatrix[:, T])
+
+        prePlaces = np.ones(self.nPlaces)
+        for i in range(len(sharedPlaces)):
+            prePlaces = np.logical_and(prePlaces, sharedPlaces[i])
+
+        input_transitions = np.zeros(self.nTransitions)
+        for j in range(len(prePlaces)):
+            if(prePlaces[j]):
+                input_transitions = np.logical_or(
+                    input_transitions, self.iPlusMatrix[j, :])
+        newIPlus[-2, :-1] = input_transitions
+
+        # 2da fila: 1 en col de las T agregada
+        newIPlus[-1, -1] = 1
+
         # I: sumar ambas
+        newIMatrix = newIPlus - newIMinus
+
         # Inhibicion:
         # 1er fila: todos ceros
         # 2da fila: 1 en col de la T agergada
+        newInhibition[-1, -1] = 1
+
         # Marcado: 1 token en 2da col agregada si alguna plaza compartida tiene token
-        print('')
+        prePlacesMarking = np.logical_and(prePlaces, self.marking)
+
+        getsToken = np.isin(True, prePlacesMarking)
+        newMarking = np.append(self.marking, [0, getsToken])
+
+        # Cost
+        newCost = np.append(self.costVector, 0)
+
+        # Replacing
+        self.iMinusMatrix = newIMinus
+        self.iPlusMatrix = newIPlus
+        self.iMatrix = newIMatrix
+        self.inhibitionMatrix = newInhibition
+        self.marking = newMarking
+        self.costVector = newCost
+
+        self.updateT.append(self.nTransitions)
+
+        self.nPlaces += 2
+        self.nTransitions += 1
+
+        return
 
     def addRowsColumns(self, matrix):
         newMatrix = np.append(matrix, np.zeros(

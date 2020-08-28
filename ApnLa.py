@@ -8,13 +8,11 @@ class ApnLa:
     def __init__(self, loadModified):
         if loadModified:
             self.rdp = Rdp(True)
-            clusterList = self.rdp.clusterlist
-            updateT = self.rdp.getUpdateT()
         else:
             self.rdp = Rdp(False)
-            clusterList = self.rdp.clusterlist
-            print('Implementar luego')
 
+        clusterList = self.rdp.clusterlist
+        updateT = self.rdp.updateT
         self.clusterManager = ClusterManager(clusterList, updateT)
 
     def fireNext(self):
