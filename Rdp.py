@@ -22,6 +22,8 @@ class Rdp:
 
         if loadModified == False:
             self.modifyNet()
+
+        self.initialMarking = np.copy(self.marking)
         self.clusterlist = self.defineClusterList(self.conflictList)
 
     def initFromFile(self, fileName, loadModified):

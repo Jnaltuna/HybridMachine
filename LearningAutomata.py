@@ -20,6 +20,7 @@ class LearningAutomata:
 
     def update(self, beta):
 
+        # TODO: explicar para informe
         # If there's only one action it shouldn't update the probabilities
         if(len(self.enabledActions) < 2):
             print('New Probability Vector!', self.probabilityVector)
