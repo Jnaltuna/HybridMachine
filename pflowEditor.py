@@ -66,9 +66,9 @@ def obtain_elements(iPlus, iMinus, inhibition, marking):
     return PetriShape(placesList, transitionsList, arcsList)
 
 
-def modify_net(newPlaces, newTransitions, newArcs):
+def modify_net(netName, newPlaces, newTransitions, newArcs):
 
-    tree = ElementTree.parse('../TimedNet-mod.pflow')
+    tree = ElementTree.parse(netName)
     print('Transitions: ', newTransitions)
     print('Places', newPlaces)
     for place in newPlaces:
@@ -80,7 +80,10 @@ def modify_net(newPlaces, newTransitions, newArcs):
     for arc in newArcs:
         tree = addArc(tree, arc.arcType, arc.srcId, arc.dstId, arc.weight)
 
-    tree.write('test.pflow')
+    # tree.write('test.pflow')
+    formated_xml = prettify(tree.getroot())
+    with open('out.pflow', 'w') as f:
+        f.write(formated_xml)
 
 
 x = 0
@@ -170,5 +173,10 @@ def addArc(tree, arctype, srcID, dstID, weight):
 
 def prettify(elem):
     rough_string = ElementTree.tostring(elem, 'utf-8')
-    reparsed = minidom.parseString(rough_string)
-    return reparsed.toprettyxml(indent="  ")
+    decoded = rough_string.decode('utf-8')
+    replaced = re.sub('\n *', '', decoded)
+    #rough_string = rough_string.decode('utf-8').replace('\n', '')
+    #rough_string = rough_string.replace(' ', '')
+    reparsed = minidom.parseString(replaced)
+    prettyString = reparsed.toprettyxml(indent="  ")
+    return prettyString

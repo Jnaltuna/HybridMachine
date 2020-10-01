@@ -4,10 +4,11 @@ import numpy as np
 
 class Rdp:
 
-    #FILENAME = "petrinet.json"
-    FILENAME = "PNunmodified.json"
+    FILENAME = "petrinet.json"
+    #FILENAME = "PNunmodified.json"
+    #FILENAME = "test.json"
 
-    def __init__(self, loadModified):
+    def __init__(self, jsonFile, loadModified):
         self.updateT = [None]
         self.conflictList = []
         self.iMatrix = []
@@ -18,7 +19,7 @@ class Rdp:
         self.marking = []
         self.nPlaces = 0
         self.nTransitions = 0
-        self.initFromFile(self.FILENAME, loadModified)
+        self.initFromFile(jsonFile, loadModified)
 
         if loadModified == False:
             self.modifyNet()
@@ -46,7 +47,7 @@ class Rdp:
         self.inhibitionMatrix = np.array(json_data["Inhibicion"])
         self.costVector = np.array(json_data["Costos"])
         self.marking = np.array(json_data["Marcado"])
-
+        print(self.marking)
         self.nPlaces = self.iPlusMatrix.shape[0]
         self.nTransitions = self.iPlusMatrix.shape[1]
 

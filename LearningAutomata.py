@@ -3,6 +3,7 @@ import random
 
 a = 0.1  # or 0.05
 b = 0.05
+#b = 0
 
 
 class LearningAutomata:
@@ -15,8 +16,8 @@ class LearningAutomata:
         self.scaledProbabilityVector = []
         self.K = 0
         self.firedAction = 0
-        print("Probability", self.probabilityVector)
         print("Actions", self.actionList)
+        print("Probability", self.probabilityVector)
 
     def update(self, beta):
 
@@ -64,7 +65,7 @@ class LearningAutomata:
             scaledProbVector[i] = self.probabilityVector[self.actionList.index(
                 enabledActions[i])] / K
         self.scaledProbabilityVector = scaledProbVector
-        print('Scaled: ', scaledProbVector, 'K: ', K)
+        #print('Scaled: ', scaledProbVector, 'K: ', K)
 
         self.firedAction = random.choices(
             enabledActions, scaledProbVector, k=1)[-1]

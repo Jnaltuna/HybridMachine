@@ -15,16 +15,6 @@ class ClusterManager:
                 automata = LearningAutomata(clusterList[i])
             self.clusters.append(Cluster(automata, clusterList[i], updateT[i]))
 
-    def updateIfNecessary(self, numT):
-        if numT in self.updateT:
-            clusterIndex = self.updateT.index(numT)
-            self.clusters[clusterIndex].updateLA()
-
-    def resolveConflict(self, cluster, enabledList):
-        actions = self.localEnabledList(
-            self.clusters[cluster].transitionList, enabledList)
-        return self.clusters[cluster].executeLA(actions)
-
     def updateCost(self, cost, transition):
         # TODO update cost of every cluster
         for cluster in self.clusters:
@@ -33,6 +23,12 @@ class ClusterManager:
         self.updateIfNecessary(transition)
         return
 
+    def updateIfNecessary(self, numT):
+        if numT in self.updateT:
+            clusterIndex = self.updateT.index(numT)
+            print('Cluster to update: ', clusterIndex)
+            self.clusters[clusterIndex].updateLA()
+
     def localEnabledList(self, transitionList, enabledList):
         localEnList = []
 
@@ -40,6 +36,19 @@ class ClusterManager:
             if (enabledList[i] == True) and (i in transitionList):
                 localEnList.append(i)
         return localEnList
+
+    # returns transition to fire based on enabled vector
+    def getFireTransition(self, enabledTransitions):
+
+        selectedCluster, localEnabled = self.selectCluster(enabledTransitions)
+        selectedTransition = -1
+
+        if self.clusters.index(selectedCluster) == 0:
+            selectedTransition = random.choice(localEnabled)
+        else:
+            selectedTransition = selectedCluster.executeLA(localEnabled)
+
+        return selectedTransition
 
     def selectCluster(self, enabled):
 
@@ -81,14 +90,7 @@ class ClusterManager:
 
         return localEnabled
 
-    def getFireTransition(self, enabledTransitions):
-
-        selectedCluster, localEnabled = self.selectCluster(enabledTransitions)
-        selectedTransition = -1
-
-        if self.clusters.index(selectedCluster) == 0:
-            selectedTransition = random.choice(localEnabled)
-        else:
-            selectedTransition = selectedCluster.executeLA(localEnabled)
-
-        return selectedTransition
+    def resolveConflict(self, cluster, enabledList):
+        actions = self.localEnabledList(
+            self.clusters[cluster].transitionList, enabledList)
+        return self.clusters[cluster].executeLA(actions)

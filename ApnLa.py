@@ -5,11 +5,9 @@ import numpy as np
 
 class ApnLa:
 
-    def __init__(self, loadModified):
-        if loadModified:
-            self.rdp = Rdp(True)
-        else:
-            self.rdp = Rdp(False)
+    def __init__(self, jsonFile, loadModified):
+
+        self.rdp = Rdp(jsonFile, loadModified)
 
         clusterList = self.rdp.clusterlist
         updateT = self.rdp.updateT
