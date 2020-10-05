@@ -10,6 +10,9 @@ class ApnLa:
         self.rdp = Rdp(jsonFile, loadModified)
 
         clusterList = self.rdp.clusterlist
+        print('Cluster list: ')
+        for x in range(len(clusterList)):
+            print(clusterList[x])
         updateT = self.rdp.updateT
         self.clusterManager = ClusterManager(clusterList, updateT)
 

@@ -28,12 +28,6 @@ def main():
 
     apn = ApnLa(args.jsonFile[0], loadModified)
 
-    print(args.fireNumber)
-    for i in range(int(args.fireNumber)):
-        apn.fireNext()
-        if(i == 1000):
-            apn.switcharoo()
-
     if args.net_name != 'null':
         petriShape = editor.obtain_elements(
             apn.rdp.iPlusMatrix, apn.rdp.iMinusMatrix, apn.rdp.inhibitionMatrix, apn.rdp.initialMarking)
@@ -48,6 +42,11 @@ def main():
                     newArcs.append(arc)
 
         editor.modify_net(args.net_name, newPlaces, newTransitions, newArcs)
+
+    for i in range(int(args.fireNumber)):
+        apn.fireNext()
+        if(i == 1000):
+            apn.switcharoo()
 
     # print('Marking', apn.rdp.marking)
     # for cluster in apn.clusterManager.clusters:

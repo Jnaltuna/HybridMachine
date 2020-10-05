@@ -1,5 +1,6 @@
 import json
 import numpy as np
+import sys
 
 
 class Rdp:
@@ -47,7 +48,7 @@ class Rdp:
         self.inhibitionMatrix = np.array(json_data["Inhibicion"])
         self.costVector = np.array(json_data["Costos"])
         self.marking = np.array(json_data["Marcado"])
-        print(self.marking)
+
         self.nPlaces = self.iPlusMatrix.shape[0]
         self.nTransitions = self.iPlusMatrix.shape[1]
 
@@ -107,11 +108,16 @@ class Rdp:
                 if(column[j] > 0):
                     shared.append(j)
             if(len(shared) > 1):
+                deleteRows = []
                 for row in range(1, len(shared)):
                     conflictMatrix[shared[0]] = conflictMatrix[shared[0]
                                                                ] + conflictMatrix[shared[row]]
+                    deleteRows.append(shared[row])
+
+                deleteRows.sort(reverse=True)
+                for row in deleteRows:
                     conflictMatrix = np.delete(
-                        conflictMatrix, shared[row], axis=0)
+                        conflictMatrix, row, axis=0)
 
         # conflicts = []
         # for i in range(len(conflictMatrix)):
@@ -148,7 +154,6 @@ class Rdp:
         newIMinus[-2, -1] = 1
         # 2da fila, 1 en col de las T del conflicto
         for T in conflict:
-            print(T)
             newIMinus[-1, T] = 1
 
         # Matriz I+
@@ -232,6 +237,11 @@ class Rdp:
                 if(T[row][i] != 0 and T[row][i] < self.marking[i]):
                     enabled[row] = False
                     break
+
+        print('marking: ', self.marking)
+        print('enabled: ', enabled)
+        if(np.count_nonzero(enabled) == 0):
+            sys.exit("The net is blocked!")
 
         return enabled
 
