@@ -14,20 +14,29 @@ class ClusterManager:
             if (i != 0):
                 automata = LearningAutomata(clusterList[i])
             self.clusters.append(Cluster(automata, clusterList[i], updateT[i]))
+        self.cost = 0
+        self.historic = []
+        self.meanCost = 0
 
-    def updateCost(self, cost, transition):
-        # TODO update cost of every cluster
-        for cluster in self.clusters:
-            cluster.cost += cost
+    def updateCost(self, cost):
 
-        self.updateIfNecessary(transition)
+        self.cost = cost
+        self.historic.append(self.cost)
+        self.meanCost = self.meanCost + \
+            (self.cost - self.meanCost) / len(self.historic)
+
+        print('Cost: ', self.cost)
+        print('Mean: ', self.meanCost)
+        # for cluster in self.clusters:
+        #    cluster.cost += cost
+
         return
 
     def updateIfNecessary(self, numT):
         if numT in self.updateT:
             clusterIndex = self.updateT.index(numT)
             print('Cluster to update: ', clusterIndex)
-            self.clusters[clusterIndex].updateLA()
+            self.clusters[clusterIndex].updateLA(self.cost, self.meanCost)
 
     def localEnabledList(self, transitionList, enabledList):
         localEnList = []
@@ -62,7 +71,6 @@ class ClusterManager:
                 cluster, enabled)
             clusterProb.append(len(localEnabled)/len(enabled))
             clusterEnabledTransitions.append(localEnabled)
-
         selectedCluster = random.choices(enabledClusters, clusterProb, k=1)[-1]
 
         return selectedCluster, clusterEnabledTransitions[enabledClusters.index(selectedCluster)]

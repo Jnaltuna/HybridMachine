@@ -7,27 +7,15 @@ class Cluster:
         self.updateT = updateT
         self.transitionList = transitionList
         self.LA = automata
-        self.cost = 0
-        self.historic = []
-        self.meanCost = 0
 
-    def updateLA(self):
-        self.historic.append(self.cost)
+    def updateLA(self, cost, meanCost):
 
-        self.meanCost = self.meanCost + \
-            (self.cost - self.meanCost) / len(self.historic)
-
-        print('Cost: ', self.cost)
-        print('Mean: ', self.meanCost)
-
-        if(self.cost < self.meanCost):
+        if(cost < meanCost):
             beta = 0
         else:
             beta = 1
 
         self.LA.update(beta)
-
-        self.cost = 0
 
         return
 

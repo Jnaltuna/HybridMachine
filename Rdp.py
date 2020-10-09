@@ -18,6 +18,7 @@ class Rdp:
         self.inhibitionMatrix = []
         self.costVector = []
         self.marking = []
+        self.tInvariants = []
         self.nPlaces = 0
         self.nTransitions = 0
         self.initFromFile(jsonFile, loadModified)
@@ -51,6 +52,10 @@ class Rdp:
 
         self.nPlaces = self.iPlusMatrix.shape[0]
         self.nTransitions = self.iPlusMatrix.shape[1]
+
+        invariantList = json_data["Invariantes"]
+        for invariant in invariantList:
+            self.tInvariants.append(self.parseTransitionsList(invariant))
 
     def parseTransitionsList(self, tList):
         newtList = []
@@ -143,6 +148,8 @@ class Rdp:
         return potentialConflicts
 
     def insertPlacesTransitions(self, conflict):
+        print('Conflict')
+        print(conflict)
 
         # Para cada matriz -> 2 filas, 1 col. Marcado 2 col. Costo 1 col
         newIMinus = self.addRowsColumns(self.iMinusMatrix)
@@ -238,8 +245,8 @@ class Rdp:
                     enabled[row] = False
                     break
 
-        print('marking: ', self.marking)
-        print('enabled: ', enabled)
+        #print('marking: ', self.marking)
+        #print('enabled: ', enabled)
         if(np.count_nonzero(enabled) == 0):
             sys.exit("The net is blocked!")
 
