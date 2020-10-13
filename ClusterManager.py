@@ -2,18 +2,29 @@ from Cluster import Cluster
 from LearningAutomata import LearningAutomata
 import numpy as np
 import random
+import json
 
 
 class ClusterManager:
 
-    def __init__(self, clusterList, updateT):
+    def __init__(self, clusterList, updateT, fileName):
         self.updateT = updateT
         self.clusters = []
+        self.controlClusters = []
+
+        controlIndex = self.getControlClusters(fileName)
+
         for i in range(len(clusterList)):
             automata = None
             if (i != 0):
                 automata = LearningAutomata(clusterList[i])
-            self.clusters.append(Cluster(automata, clusterList[i], updateT[i]))
+            cluster = Cluster(automata, clusterList[i], updateT[i])
+
+            if (i not in controlIndex):
+                self.clusters.append(cluster)
+            else:
+                self.controlClusters.append(cluster)
+
         self.cost = 0
         self.historic = []
         self.meanCost = 0
@@ -33,10 +44,16 @@ class ClusterManager:
         return
 
     def updateIfNecessary(self, numT):
-        if numT in self.updateT:
+        if self.isUpdate(numT):
             clusterIndex = self.updateT.index(numT)
             print('Cluster to update: ', clusterIndex)
             self.clusters[clusterIndex].updateLA(self.cost, self.meanCost)
+
+    def isUpdate(self, transition):
+        if transition in self.updateT:
+            return True
+        else:
+            return False
 
     def localEnabledList(self, transitionList, enabledList):
         localEnList = []
@@ -66,6 +83,10 @@ class ClusterManager:
 
         enabledClusters = self.enabledClusters(enabled)
 
+        if(len(enabledClusters[0]) > 0):
+            print('HAY CONTROL!!!\n', enabledClusters)
+
+        #TODO: CAMBIAR
         for cluster in enabledClusters:
             localEnabled = self.getClusterEnabledTransitions(
                 cluster, enabled)
@@ -79,11 +100,22 @@ class ClusterManager:
 
         enabledClusters = []
 
+        enabledClusters.append([])
+
+        for cluster in self.controlClusters:
+            for t in range(len(enabledTransitions)):
+                if(enabledTransitions[t]):
+                    if(t in cluster.transitionList):
+                        enabledClusters[0].append(cluster)
+                        break
+
+        enabledClusters.append([])
+
         for cluster in self.clusters:
             for t in range(len(enabledTransitions)):
                 if(enabledTransitions[t]):
                     if(t in cluster.transitionList):
-                        enabledClusters.append(cluster)
+                        enabledClusters[1].append(cluster)
                         break
 
         return enabledClusters
@@ -102,3 +134,10 @@ class ClusterManager:
         actions = self.localEnabledList(
             self.clusters[cluster].transitionList, enabledList)
         return self.clusters[cluster].executeLA(actions)
+
+    def getControlClusters(self, fileName):
+        json_file = open(fileName, "r")
+        json_data = json.load(json_file)
+        json_file.close()
+
+        return json_data["ClusterControl"]

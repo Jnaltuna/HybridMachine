@@ -166,7 +166,7 @@ def addArc(tree, arctype, srcID, dstID, weight):
     arcDst = SubElement(arc, 'destinationId')
     arcDst.text = dstID
     arcWeight = SubElement(arc, 'multiplicity')
-    arcWeight.text = str(weight)
+    arcWeight.text = str(int(weight))
 
     return tree
 

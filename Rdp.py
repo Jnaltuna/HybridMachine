@@ -256,3 +256,12 @@ class Rdp:
         self.marking = self.marking + \
             self.iMatrix[:, numTransicion]
         return self.costVector[numTransicion]
+
+    def calcularCosto(self, invariant):
+        costo = 0
+        transitions = invariant.split(';')
+        print(transitions)
+        for transition in transitions:
+            costo += self.costVector[int(transition)]
+        print(costo)
+        return costo
