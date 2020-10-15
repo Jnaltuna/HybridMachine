@@ -45,9 +45,22 @@ class ClusterManager:
 
     def updateIfNecessary(self, numT):
         if self.isUpdate(numT):
-            clusterIndex = self.updateT.index(numT)
-            print('Cluster to update: ', clusterIndex)
-            self.clusters[clusterIndex].updateLA(self.cost, self.meanCost)
+            print(numT)
+            cluster = self.getClusterFromUpdate(self.clusters, numT)
+            if cluster == None:
+                cluster = self.getClusterFromUpdate(self.controlClusters, numT)
+                print('Costo', self.cost)
+                print('Mean ', self.meanCost)
+                print('T ', cluster.LA.firedAction)
+
+            #print('Cluster to update: ', clusterIndex)
+            cluster.updateLA(self.cost, self.meanCost)
+
+    def getClusterFromUpdate(self, clusterList, numT):
+        for cluster in clusterList:
+            if(numT == cluster.updateT):
+                return cluster
+        return None
 
     def isUpdate(self, transition):
         if transition in self.updateT:
@@ -66,7 +79,7 @@ class ClusterManager:
     # returns transition to fire based on enabled vector
     def getFireTransition(self, enabledTransitions):
 
-        selectedCluster, localEnabled = self.selectCluster(enabledTransitions)
+        selectedCluster, localEnabled = self.getFireCluster(enabledTransitions)
         selectedTransition = -1
 
         if self.clusters.index(selectedCluster) == 0:
@@ -76,25 +89,33 @@ class ClusterManager:
 
         return selectedTransition
 
-    def selectCluster(self, enabled):
+    def getFireCluster(self, enabled):
 
-        clusterProb = []
-        clusterEnabledTransitions = []
+        #clusterProb = []
+        #clusterEnabledTransitions = []
 
         enabledClusters = self.enabledClusters(enabled)
 
         if(len(enabledClusters[0]) > 0):
-            print('HAY CONTROL!!!\n', enabledClusters)
+            controlCluster, clusterEnabledTransitions = self.selectCluster(
+                enabled, enabledClusters[0])
+            selectedTransition = controlCluster.executeLA(
+                clusterEnabledTransitions)
+            for cluster in enabledClusters[1]:
+                if (selectedTransition in cluster.transitionList):
+                    return cluster, self.getClusterEnabledTransitions(cluster, enabled)
+        else:
+            return self.selectCluster(enabled, enabledClusters[1])
 
         #TODO: CAMBIAR
-        for cluster in enabledClusters:
-            localEnabled = self.getClusterEnabledTransitions(
-                cluster, enabled)
-            clusterProb.append(len(localEnabled)/len(enabled))
-            clusterEnabledTransitions.append(localEnabled)
-        selectedCluster = random.choices(enabledClusters, clusterProb, k=1)[-1]
+        # for cluster in enabledClusters:
+        #     localEnabled = self.getClusterEnabledTransitions(
+        #         cluster, enabled)
+        #     clusterProb.append(len(localEnabled)/len(enabled))
+        #     clusterEnabledTransitions.append(localEnabled)
+        # selectedCluster = random.choices(enabledClusters, clusterProb, k=1)[-1]
 
-        return selectedCluster, clusterEnabledTransitions[enabledClusters.index(selectedCluster)]
+        # return selectedCluster, clusterEnabledTransitions[enabledClusters.index(selectedCluster)]
 
     def enabledClusters(self, enabledTransitions):
 
@@ -129,6 +150,19 @@ class ClusterManager:
                 localEnabled.append(t)
 
         return localEnabled
+
+    def selectCluster(self, enabledTransitions, enabledClusters):
+        clusterProb = []
+        clusterEnabledTransitions = []
+
+        for cluster in enabledClusters:
+            localEnabled = self.getClusterEnabledTransitions(
+                cluster, enabledTransitions)
+            clusterProb.append(len(localEnabled)/len(enabledTransitions))
+            clusterEnabledTransitions.append(localEnabled)
+        selectedCluster = random.choices(enabledClusters, clusterProb, k=1)[-1]
+
+        return selectedCluster, clusterEnabledTransitions[enabledClusters.index(selectedCluster)]
 
     def resolveConflict(self, cluster, enabledList):
         actions = self.localEnabledList(

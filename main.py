@@ -5,8 +5,6 @@ from LearningAutomata import LearningAutomata
 import pflowEditor as editor
 import argparse
 
-# TODO: definir parametros y opciones de ejecucion
-
 
 def main():
 
@@ -45,8 +43,15 @@ def main():
 
     for i in range(int(args.fireNumber)):
         apn.fireNext()
-        if(i == 1000):
-            apn.switcharoo()
+        # if(i == 1000):
+        #    apn.switcharoo()
+
+    for cluster in apn.clusterManager.clusters:
+        if(cluster.LA != None):
+            print(cluster.LA.probabilityVector)
+
+    for cluster in apn.clusterManager.controlClusters:
+        print(cluster.LA.probabilityVector)
 
     # print('Marking', apn.rdp.marking)
     # for cluster in apn.clusterManager.clusters:

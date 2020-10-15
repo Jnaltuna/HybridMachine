@@ -57,19 +57,15 @@ class ApnLa:
             match = re.search(pattern, self.invariantStr)
             if match:
                 newPartial = False
-                print('matcheado perri')
                 pattern = '\\n(?:{}{};\\n)'.format(partInv, fireTransition)
                 if(re.search(pattern, self.invariantStr)):
-                    # TODO: remuevo parcial y actualizo costos
-                    print('Completa maquina')
+
                     costo = self.rdp.calcularCosto(
                         '{}{}'.format(partInv, fireTransition))
                     self.clusterManager.updateCost(costo)
                     self.partialInvariants.remove(partInv)
-
                     break
-                else:  # TODO: actualizo parcial
-                    print('parcial tigre')
+                else:
                     self.partialInvariants[self.partialInvariants.index(
                         partInv)] += '{};'.format(fireTransition)
                     break

@@ -22,13 +22,13 @@ class LearningAutomata:
     def update(self, beta):
 
         # If there's only one action it shouldn't update the probabilities
-        if(len(self.enabledActions) < 2):
-            print('New Probability Vector!', self.probabilityVector)
-            return
+        # if(len(self.enabledActions) < 2):
+        #    print('New Probability Vector!', self.probabilityVector)
+        #    return
 
-        for action in self.enabledActions:
-            actionIndex = self.enabledActions.index(action)
-            previousProb = self.scaledProbabilityVector[actionIndex]
+        for action in self.actionList:
+            actionIndex = self.actionList.index(action)
+            previousProb = self.probabilityVector[actionIndex]
             if beta == 0:
                 if action == self.firedAction:
                     newProb = previousProb + a * (1 - previousProb)
@@ -38,11 +38,12 @@ class LearningAutomata:
                 if action == self.firedAction:
                     newProb = (1-b) * previousProb
                 else:
-                    r = len(self.enabledActions)
+                    r = len(self.actionList)
                     newProb = (b/(r-1)) + (1 - b) * previousProb
 
             self.probabilityVector[self.actionList.index(
-                action)] = newProb * self.K
+                action)] = newProb
+            # * self.K
 
         print('New Probability Vector!', self.probabilityVector)
 
