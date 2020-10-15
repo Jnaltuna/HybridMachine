@@ -17,7 +17,7 @@ class Cluster:
         self.meanCost = self.meanCost + \
             (self.cost - self.meanCost) / len(self.historic)
 
-        print('Cost: ', self.cost)
+        print('Cost: ', self.cost, end="\t")
         print('Mean: ', self.meanCost)
 
         if(self.cost < self.meanCost):

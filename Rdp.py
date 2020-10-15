@@ -1,6 +1,7 @@
 import json
 import numpy as np
 import sys
+from exceptions import NetException
 
 
 class Rdp:
@@ -238,10 +239,8 @@ class Rdp:
                     enabled[row] = False
                     break
 
-        print('marking: ', self.marking)
-        print('enabled: ', enabled)
         if(np.count_nonzero(enabled) == 0):
-            sys.exit("The net is blocked!")
+            raise NetException("Red bloqueada")
 
         return enabled
 
