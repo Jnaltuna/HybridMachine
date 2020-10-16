@@ -16,8 +16,8 @@ class LearningAutomata:
         self.scaledProbabilityVector = []
         self.K = 0
         self.firedAction = 0
-        print("Actions", self.actionList)
-        print("Probability", self.probabilityVector)
+        #print("Actions", self.actionList)
+        #print("Probability", self.probabilityVector)
 
     def update(self, beta):
 
@@ -45,7 +45,7 @@ class LearningAutomata:
                 action)] = newProb
             # * self.K
 
-        print('New Probability Vector!', self.probabilityVector)
+        #print('New Probability Vector!', self.probabilityVector)
 
     def execute(self, enabledActions):
         self.enabledActions = enabledActions

@@ -14,8 +14,10 @@ class ApnLa:
         print('Cluster list: ')
         for x in range(len(clusterList)):
             print(clusterList[x])
+        input()
         updateT = self.rdp.updateT
-        self.clusterManager = ClusterManager(clusterList, updateT, jsonFile)
+        self.clusterManager = ClusterManager(
+            clusterList, updateT, jsonFile, self.rdp.tInvariants)
 
         # Definimos el string de invariantes para chequear con regex
         tinv = ';\n'.join(';'.join('%d' % x for x in y)
@@ -31,7 +33,7 @@ class ApnLa:
         enabledT = self.rdp.calcularSensibilizadas()
 
         fireTransition = self.clusterManager.getFireTransition(enabledT)
-        print('Fired Transition:', fireTransition)
+        #print('Fired Transition:', fireTransition)
         # firedCost = self.rdp.fire(fireTransition)
         self.rdp.fire(fireTransition)
 
@@ -60,9 +62,15 @@ class ApnLa:
                 pattern = '\\n(?:{}{};\\n)'.format(partInv, fireTransition)
                 if(re.search(pattern, self.invariantStr)):
 
-                    costo = self.rdp.calcularCosto(
+                    costo, invNum = self.rdp.calcularCosto(
                         '{}{}'.format(partInv, fireTransition))
-                    self.clusterManager.updateCost(costo)
+
+                    # print(costo)
+                    # print(invNum)
+                    # input()
+
+                    self.clusterManager.updateCost(costo, invNum)
+
                     self.partialInvariants.remove(partInv)
                     break
                 else:
@@ -76,4 +84,7 @@ class ApnLa:
             self.partialInvariants.append('{};'.format(fireTransition))
 
     def switcharoo(self):
-        self.rdp.costVector[0] = 10
+        #self.rdp.costVector[0] = 50
+        self.rdp.costVector[6] = 50
+        self.rdp.costVector[4] = 25
+        print(self.rdp.costVector)

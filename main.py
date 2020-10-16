@@ -45,13 +45,17 @@ def main():
         apn.fireNext()
         # if(i == 1000):
         #    apn.switcharoo()
+        #    input()
+        if (i % 2000 == 0):
+            print(i)
+            for cluster in apn.clusterManager.clusters:
+                if(cluster.LA != None):
+                    print(cluster.transitionList)
+                    print(cluster.LA.probabilityVector)
 
-    for cluster in apn.clusterManager.clusters:
-        if(cluster.LA != None):
-            print(cluster.LA.probabilityVector)
-
-    for cluster in apn.clusterManager.controlClusters:
-        print(cluster.LA.probabilityVector)
+            for cluster in apn.clusterManager.controlClusters:
+                print(cluster.LA.probabilityVector)
+            # input()
 
     # print('Marking', apn.rdp.marking)
     # for cluster in apn.clusterManager.clusters:

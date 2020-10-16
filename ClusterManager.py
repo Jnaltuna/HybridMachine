@@ -7,7 +7,7 @@ import json
 
 class ClusterManager:
 
-    def __init__(self, clusterList, updateT, fileName):
+    def __init__(self, clusterList, updateT, fileName, tInvariants):
         self.updateT = updateT
         self.clusters = []
         self.controlClusters = []
@@ -25,36 +25,39 @@ class ClusterManager:
             else:
                 self.controlClusters.append(cluster)
 
-        self.cost = 0
+        self.invCost = []
+        for inv in tInvariants:
+            self.invCost.append(0)
+        self.tInvariants = tInvariants
+        #self.cost = 0
         self.historic = []
         self.meanCost = 0
 
-    def updateCost(self, cost):
+    def updateCost(self, cost, invNum):
 
-        self.cost = cost
-        self.historic.append(self.cost)
+        self.invCost[invNum] = cost
+        self.historic.append(cost)
         self.meanCost = self.meanCost + \
-            (self.cost - self.meanCost) / len(self.historic)
+            (cost - self.meanCost) / len(self.historic)
 
-        print('Cost: ', self.cost)
-        print('Mean: ', self.meanCost)
-        # for cluster in self.clusters:
-        #    cluster.cost += cost
+        #print('Cost: ', cost)
+        #print('Mean: ', self.meanCost)
 
         return
 
     def updateIfNecessary(self, numT):
         if self.isUpdate(numT):
-            print(numT)
+            # print(numT)
             cluster = self.getClusterFromUpdate(self.clusters, numT)
             if cluster == None:
                 cluster = self.getClusterFromUpdate(self.controlClusters, numT)
-                print('Costo', self.cost)
-                print('Mean ', self.meanCost)
-                print('T ', cluster.LA.firedAction)
 
-            #print('Cluster to update: ', clusterIndex)
-            cluster.updateLA(self.cost, self.meanCost)
+            cost = []
+            for tinv in self.tInvariants:
+                if (cluster.LA.firedAction in tinv):
+                    cost.append(self.invCost[self.tInvariants.index(tinv)])
+
+            cluster.updateLA(min(cost), self.meanCost)
 
     def getClusterFromUpdate(self, clusterList, numT):
         for cluster in clusterList:
@@ -90,9 +93,6 @@ class ClusterManager:
         return selectedTransition
 
     def getFireCluster(self, enabled):
-
-        #clusterProb = []
-        #clusterEnabledTransitions = []
 
         enabledClusters = self.enabledClusters(enabled)
 

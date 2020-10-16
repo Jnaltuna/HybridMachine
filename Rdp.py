@@ -260,8 +260,10 @@ class Rdp:
     def calcularCosto(self, invariant):
         costo = 0
         transitions = invariant.split(';')
-        print(transitions)
+        # print(transitions)
         for transition in transitions:
             costo += self.costVector[int(transition)]
-        print(costo)
-        return costo
+        # print(costo)
+        # print(self.tInvariants)
+        temp = [int(val) for val in transitions]
+        return costo, self.tInvariants.index(temp)
