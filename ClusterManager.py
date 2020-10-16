@@ -7,7 +7,7 @@ import json
 
 class ClusterManager:
 
-    def __init__(self, clusterList, updateT, fileName, tInvariants):
+    def __init__(self, clusterList, updateT, fileName):
         self.updateT = updateT
         self.clusters = []
         self.controlClusters = []
@@ -25,20 +25,16 @@ class ClusterManager:
             else:
                 self.controlClusters.append(cluster)
 
-        self.invCost = []
-        for inv in tInvariants:
-            self.invCost.append(0)
-        self.tInvariants = tInvariants
+        self.cost = 0
         #self.cost = 0
         self.historic = []
         self.meanCost = 0
 
-    def updateCost(self, cost, invNum):
+    def updateCost(self, cost, fireTransition):
 
-        self.invCost[invNum] = cost
-        self.historic.append(cost)
-        self.meanCost = self.meanCost + \
-            (cost - self.meanCost) / len(self.historic)
+        for cluster in self.clusters:
+            if(fireTransition in cluster.transitionList):
+                cluster.cost = cost
 
         #print('Cost: ', cost)
         #print('Mean: ', self.meanCost)
@@ -52,12 +48,7 @@ class ClusterManager:
             if cluster == None:
                 cluster = self.getClusterFromUpdate(self.controlClusters, numT)
 
-            cost = []
-            for tinv in self.tInvariants:
-                if (cluster.LA.firedAction in tinv):
-                    cost.append(self.invCost[self.tInvariants.index(tinv)])
-
-            cluster.updateLA(min(cost), self.meanCost)
+            cluster.updateLA()
 
     def getClusterFromUpdate(self, clusterList, numT):
         for cluster in clusterList:
