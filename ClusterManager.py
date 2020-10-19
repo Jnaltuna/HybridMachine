@@ -3,6 +3,7 @@ from LearningAutomata import LearningAutomata
 import numpy as np
 import random
 import json
+import statistics
 
 
 class ClusterManager:
@@ -37,9 +38,9 @@ class ClusterManager:
 
         self.invCost[invNum] = cost
         self.historic.append(cost)
-        self.meanCost = self.meanCost + \
-            (cost - self.meanCost) / len(self.historic)
-
+        # self.meanCost = self.meanCost + \
+        #    (cost - self.meanCost) / len(self.historic)
+        self.meanCost = statistics.mean(self.historic[-50:])
         #print('Cost: ', cost)
         #print('Mean: ', self.meanCost)
 
@@ -57,7 +58,18 @@ class ClusterManager:
                 if (cluster.LA.firedAction in tinv):
                     cost.append(self.invCost[self.tInvariants.index(tinv)])
 
+            cost = [val for val in cost if val != 0]
+
+            if not cost:
+                return
+
             cluster.updateLA(min(cost), self.meanCost)
+
+            # if(9 in cluster.transitionList):
+            #    print('Cost vector: ', cost)
+            #    print('Fired T', cluster.LA.firedAction)
+            #    print('Mean cost: ', self.meanCost)
+            #    print('min cost', min(cost))
 
     def getClusterFromUpdate(self, clusterList, numT):
         for cluster in clusterList:

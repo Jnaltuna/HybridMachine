@@ -57,10 +57,26 @@ def main():
                 print(cluster.LA.probabilityVector)
             # input()
 
-    # print('Marking', apn.rdp.marking)
-    # for cluster in apn.clusterManager.clusters:
-    #    if(cluster.LA != None):
-    #        print('Final prob', cluster.LA.probabilityVector)
+    print('Final results: ')
+    for cluster in apn.clusterManager.clusters:
+        if(cluster.LA != None):
+            print(cluster.transitionList)
+            print(cluster.LA.probabilityVector)
+
+    for cluster in apn.clusterManager.controlClusters:
+        print(cluster.LA.probabilityVector)
+
+    print('Invariant cost:')
+    for inv in apn.clusterManager.tInvariants:
+        cost = 0
+        for t in inv:
+            cost += apn.rdp.costVector[t]
+        print('Invariant: ', inv)
+        print('Cost: ', cost)
+        # print('Marking', apn.rdp.marking)
+        # for cluster in apn.clusterManager.clusters:
+        #    if(cluster.LA != None):
+        #        print('Final prob', cluster.LA.probabilityVector)
 
 
 if __name__ == "__main__":
