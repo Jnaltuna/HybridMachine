@@ -25,6 +25,8 @@ class LearningAutomata:
         # if(len(self.enabledActions) < 2):
         #    print('New Probability Vector!', self.probabilityVector)
         #    return
+        if (self.firedAction not in self.actionList):
+            return
 
         for action in self.actionList:
             actionIndex = self.actionList.index(action)
