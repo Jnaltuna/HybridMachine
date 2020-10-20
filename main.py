@@ -2,8 +2,10 @@ from ApnLa import ApnLa
 from ClusterManager import ClusterManager
 from Cluster import Cluster
 from LearningAutomata import LearningAutomata
+from exceptions import NetException
 import pflowEditor as editor
 import argparse
+import numpy as np
 
 
 def main():
@@ -17,6 +19,8 @@ def main():
                         help='load net wih control places')
     parser.add_argument('-m', '--mod', dest='net_name', default='null',
                         help='net to modify')
+    parser.add_argument('-r', '--rep', dest='repeat',
+                        default=1, help='repeat complete execution')
     # parser.add_argument('-o', dest='output', default='a.coe',
     #                    help='output destination')
 
@@ -24,7 +28,37 @@ def main():
 
     loadModified = args.load_mod
 
-    apn = ApnLa(args.jsonFile[0], loadModified)
+    f = open("results.txt", "w")
+    for j in range(int(args.repeat)):
+        apn = ApnLa(args.jsonFile[0], loadModified)
+
+        for i in range(int(args.fireNumber)):
+            try:
+                apn.fireNext()
+            except NetException:
+                print("Red bloqueada - se anula la ejecucion")
+                break
+            # if(i == 1000):
+            #    apn.switcharoo()
+            #    input()
+            if (i % 2000 == 0):
+                print(i)
+                for cluster in apn.clusterManager.clusters:
+                    if(cluster.LA != None):
+                        print(cluster.transitionList)
+                        print(cluster.LA.probabilityVector)
+
+                for cluster in apn.clusterManager.controlClusters:
+                    print(cluster.LA.probabilityVector)
+                # input()
+
+        for cluster in apn.clusterManager.clusters:
+            if(cluster.LA != None):
+                f.write(np.array2string(cluster.LA.probabilityVector))
+        for cluster in apn.clusterManager.controlClusters:
+            if(cluster.LA != None):
+                f.write(np.array2string(cluster.LA.probabilityVector))
+        f.write('\n')
 
     if args.net_name != 'null':
         petriShape = editor.obtain_elements(
@@ -40,22 +74,6 @@ def main():
                     newArcs.append(arc)
 
         editor.modify_net(args.net_name, newPlaces, newTransitions, newArcs)
-
-    for i in range(int(args.fireNumber)):
-        apn.fireNext()
-        # if(i == 1000):
-        #    apn.switcharoo()
-        #    input()
-        if (i % 2000 == 0):
-            print(i)
-            for cluster in apn.clusterManager.clusters:
-                if(cluster.LA != None):
-                    print(cluster.transitionList)
-                    print(cluster.LA.probabilityVector)
-
-            for cluster in apn.clusterManager.controlClusters:
-                print(cluster.LA.probabilityVector)
-            # input()
 
     # print('Marking', apn.rdp.marking)
     # for cluster in apn.clusterManager.clusters:

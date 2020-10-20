@@ -14,7 +14,7 @@ class ApnLa:
         print('Cluster list: ')
         for x in range(len(clusterList)):
             print(clusterList[x])
-        input()
+        # input()
         updateT = self.rdp.updateT
         self.clusterManager = ClusterManager(
             clusterList, updateT, jsonFile)
