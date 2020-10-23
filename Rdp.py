@@ -249,6 +249,7 @@ class Rdp:
         #print('marking: ', self.marking)
         #print('enabled: ', enabled)
         if(np.count_nonzero(enabled) == 0):
+            print(self.marking)
             raise NetException("Red bloqueada")
 
         return enabled

@@ -38,7 +38,7 @@ class ClusterManager:
 
         self.invCost[invNum] = cost
         self.historic.append(cost)
-        # self.meanCost = self.meanCost + \
+        #self.meanCost = self.meanCost + \
         #    (cost - self.meanCost) / len(self.historic)
         self.meanCost = statistics.mean(self.historic[-50:])
         #print('Cost: ', cost)
@@ -48,7 +48,8 @@ class ClusterManager:
 
     def updateIfNecessary(self, numT):
         if self.isUpdate(numT):
-            # print(numT)
+            if(numT == 16):
+                print(numT)
             cluster = self.getClusterFromUpdate(self.clusters, numT)
             if cluster == None:
                 cluster = self.getClusterFromUpdate(self.controlClusters, numT)
@@ -95,12 +96,15 @@ class ClusterManager:
     def getFireTransition(self, enabledTransitions):
 
         selectedCluster, localEnabled = self.getFireCluster(enabledTransitions)
-        selectedTransition = -1
 
-        if self.clusters.index(selectedCluster) == 0:
-            selectedTransition = random.choice(localEnabled)
+        selectedTransition = -1
+        if(selectedCluster == None):
+            selectedTransition = localEnabled[0]
         else:
-            selectedTransition = selectedCluster.executeLA(localEnabled)
+            if self.clusters.index(selectedCluster) == 0:
+                selectedTransition = random.choice(localEnabled)
+            else:
+                selectedTransition = selectedCluster.executeLA(localEnabled)
 
         return selectedTransition
 
@@ -116,6 +120,7 @@ class ClusterManager:
             for cluster in enabledClusters[1]:
                 if (selectedTransition in cluster.transitionList):
                     return cluster, self.getClusterEnabledTransitions(cluster, enabled)
+            return None, [selectedTransition]
         else:
             return self.selectCluster(enabled, enabledClusters[1])
 
