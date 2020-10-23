@@ -15,7 +15,7 @@ class Cluster:
     def updateLA(self):
 
         self.historic.append(self.cost)
-        self.historic.append(self.cost)
+        #self.historic.append(self.cost)
         self.meanCost = self.meanCost + \
             (self.cost - self.meanCost) / len(self.historic)
 
