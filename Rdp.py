@@ -242,7 +242,7 @@ class Rdp:
 
         for row in range(len(T)):
             for i in range(len(T[row])):
-                if(T[row][i] != 0 and T[row][i] < self.marking[i]):
+                if(T[row][i] != 0 and T[row][i] <= self.marking[i]):
                     enabled[row] = False
                     break
 
