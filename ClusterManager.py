@@ -48,8 +48,6 @@ class ClusterManager:
 
     def updateIfNecessary(self, numT):
         if self.isUpdate(numT):
-            if(numT == 16):
-                print(numT)
             cluster = self.getClusterFromUpdate(self.clusters, numT)
             if cluster == None:
                 cluster = self.getClusterFromUpdate(self.controlClusters, numT)
