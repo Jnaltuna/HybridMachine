@@ -77,12 +77,15 @@ class ClusterManager:
     def getFireTransition(self, enabledTransitions):
 
         selectedCluster, localEnabled = self.getFireCluster(enabledTransitions)
-        selectedTransition = -1
 
-        if self.clusters.index(selectedCluster) == 0:
-            selectedTransition = random.choice(localEnabled)
+        selectedTransition = -1
+        if(selectedCluster == None):
+            selectedTransition = localEnabled[0]
         else:
-            selectedTransition = selectedCluster.executeLA(localEnabled)
+            if self.clusters.index(selectedCluster) == 0:
+                selectedTransition = random.choice(localEnabled)
+            else:
+                selectedTransition = selectedCluster.executeLA(localEnabled)
 
         return selectedTransition
 
@@ -98,18 +101,9 @@ class ClusterManager:
             for cluster in enabledClusters[1]:
                 if (selectedTransition in cluster.transitionList):
                     return cluster, self.getClusterEnabledTransitions(cluster, enabled)
+            return None, [selectedTransition]
         else:
             return self.selectCluster(enabled, enabledClusters[1])
-
-        #TODO: CAMBIAR
-        # for cluster in enabledClusters:
-        #     localEnabled = self.getClusterEnabledTransitions(
-        #         cluster, enabled)
-        #     clusterProb.append(len(localEnabled)/len(enabled))
-        #     clusterEnabledTransitions.append(localEnabled)
-        # selectedCluster = random.choices(enabledClusters, clusterProb, k=1)[-1]
-
-        # return selectedCluster, clusterEnabledTransitions[enabledClusters.index(selectedCluster)]
 
     def enabledClusters(self, enabledTransitions):
 
