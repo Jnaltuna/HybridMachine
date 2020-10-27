@@ -33,10 +33,10 @@ class ClusterManager:
     def updateCost(self, cost, fireTransition):
 
         for cluster in self.clusters:
-            if(fireTransition in cluster.transitionList):
-                cluster.cost = cost
+                if(fireTransition == cluster.getLastTransition()):
+                    cluster.cost = cost
         for cluster in self.controlClusters:
-            if(fireTransition in cluster.transitionList):
+            if(fireTransition == cluster.getLastTransition()):
                 cluster.cost = cost
 
         #print('Cost: ', cost)

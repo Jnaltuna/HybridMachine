@@ -1,8 +1,8 @@
 import numpy as np
 import random
 
-a = 0.1  # or 0.05
-b = 0.05
+a = 0.2  # or 0.05
+b = 0.0001
 #b = 0
 
 

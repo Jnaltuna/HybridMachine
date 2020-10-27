@@ -33,3 +33,9 @@ class Cluster:
     def executeLA(self, enabledActions):
         fireT = self.LA.execute(enabledActions)
         return fireT
+
+    def getLastTransition(self):
+        if (self.LA != None):
+            return self.LA.firedAction
+        else:
+            return None
