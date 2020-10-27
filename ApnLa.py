@@ -29,7 +29,7 @@ class ApnLa:
         cost = self.rdp.fire(fireTransition)
 
         self.clusterManager.updateCost(cost, fireTransition)
-
+        self.clusterManager.setClusterFiredTransition(fireTransition)
         self.clusterManager.updateIfNecessary(fireTransition)
 
         # print(self.partialInvariants)

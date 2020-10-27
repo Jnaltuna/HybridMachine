@@ -33,10 +33,10 @@ class ClusterManager:
     def updateCost(self, cost, fireTransition):
 
         for cluster in self.clusters:
-                if(fireTransition == cluster.getLastTransition()):
-                    cluster.cost = cost
+            if(fireTransition in cluster.transitionList):
+                cluster.cost = cost
         for cluster in self.controlClusters:
-            if(fireTransition == cluster.getLastTransition()):
+            if(fireTransition in cluster.transitionList):
                 cluster.cost = cost
 
         #print('Cost: ', cost)
@@ -163,3 +163,8 @@ class ClusterManager:
         json_file.close()
 
         return json_data["ClusterControl"]
+
+    def setClusterFiredTransition(self, transition):
+        for cluster in self.clusters:
+            if(transition in cluster.transitionList):
+                cluster.setLastTransition(transition)

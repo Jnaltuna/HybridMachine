@@ -14,6 +14,9 @@ class Cluster:
 
     def updateLA(self):
 
+        if(self.cost == 0):
+            print('Error!')
+
         self.historic.append(self.cost)
         #self.historic.append(self.cost)
         self.meanCost = self.meanCost + \
@@ -39,3 +42,8 @@ class Cluster:
             return self.LA.firedAction
         else:
             return None
+
+    def setLastTransition(self, transition):
+        if(self.LA != None):
+            self.LA.firedAction = transition
+
