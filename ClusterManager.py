@@ -38,9 +38,9 @@ class ClusterManager:
 
         self.invCost[invNum] = cost
         self.historic.append(cost)
-        #self.meanCost = self.meanCost + \
-        #    (cost - self.meanCost) / len(self.historic)
-        self.meanCost = statistics.mean(self.historic[-50:])
+        self.meanCost = self.meanCost + \
+            (cost - self.meanCost) / len(self.historic)
+        #self.meanCost = statistics.mean(self.historic[-50:])
         #print('Cost: ', cost)
         #print('Mean: ', self.meanCost)
 
@@ -192,3 +192,8 @@ class ClusterManager:
         json_file.close()
 
         return json_data["ClusterControl"]
+
+    def setClusterFiredTransition(self, transition):
+        for cluster in self.clusters:
+            if(transition in cluster.transitionList):
+                cluster.setLastTransition(transition)

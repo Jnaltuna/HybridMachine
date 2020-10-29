@@ -22,3 +22,7 @@ class Cluster:
     def executeLA(self, enabledActions):
         fireT = self.LA.execute(enabledActions)
         return fireT
+
+    def setLastTransition(self, transition):
+        if(self.LA != None):
+            self.LA.firedAction = transition

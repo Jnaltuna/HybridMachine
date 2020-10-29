@@ -39,6 +39,8 @@ class ApnLa:
 
         self.invariantAnalysis(fireTransition)
 
+        self.clusterManager.setClusterFiredTransition(fireTransition)
+
         self.clusterManager.updateIfNecessary(fireTransition)
 
         # print(self.partialInvariants)
