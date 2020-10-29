@@ -30,6 +30,7 @@ def main():
 
     f = open("results.txt", "w")
     for j in range(int(args.repeat)):
+        block = False
         apn = ApnLa(args.jsonFile[0], loadModified)
 
         for i in range(int(args.fireNumber)):
@@ -37,10 +38,14 @@ def main():
                 apn.fireNext()
             except NetException:
                 print("Red bloqueada - se anula la ejecucion")
+                block = True
                 break
             # if(i == 1000):
             #    apn.switcharoo()
             #    input()
+            #if(i % 1000 == 0):
+            #    apn.rdp.marking = apn.rdp.initialMarking
+            #    apn.partialInvariants = []
             if (i % 2000 == 0):
                 print(i)
                 for cluster in apn.clusterManager.clusters:
@@ -51,14 +56,14 @@ def main():
                 for cluster in apn.clusterManager.controlClusters:
                     print(cluster.LA.probabilityVector)
                 # input()
-
-        for cluster in apn.clusterManager.clusters:
-            if(cluster.LA != None):
-                f.write(np.array2string(cluster.LA.probabilityVector))
-        for cluster in apn.clusterManager.controlClusters:
-            if(cluster.LA != None):
-                f.write(np.array2string(cluster.LA.probabilityVector))
-        f.write('\n')
+        if(block != True):
+            for cluster in apn.clusterManager.clusters:
+                if(cluster.LA != None):
+                    f.write(np.array2string(cluster.LA.probabilityVector))
+            for cluster in apn.clusterManager.controlClusters:
+                if(cluster.LA != None):
+                    f.write(np.array2string(cluster.LA.probabilityVector))
+            f.write('\n')
 
     print('Invariant cost:')
     for inv in apn.clusterManager.tInvariants:
