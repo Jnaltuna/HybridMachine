@@ -168,3 +168,8 @@ class ClusterManager:
         for cluster in self.clusters:
             if(transition in cluster.transitionList):
                 cluster.setLastTransition(transition)
+
+    def setControlClusterFiredTransition(self, transition):
+        for cluster in self.controlClusters:
+            if(transition in cluster.transitionList):
+                cluster.setLastTransition(transition)                

@@ -30,6 +30,7 @@ class ApnLa:
 
         self.clusterManager.updateCost(cost, fireTransition)
         self.clusterManager.setClusterFiredTransition(fireTransition)
+        self.clusterManager.setControlClusterFiredTransition(fireTransition)
         self.clusterManager.updateIfNecessary(fireTransition)
 
         # print(self.partialInvariants)
