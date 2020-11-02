@@ -15,7 +15,7 @@ class LearningAutomata:
         self.enabledActions = []
         self.scaledProbabilityVector = []
         self.K = 0
-        self.firedAction = 0
+        self.firedAction = -1
         #print("Actions", self.actionList)
         #print("Probability", self.probabilityVector)
 

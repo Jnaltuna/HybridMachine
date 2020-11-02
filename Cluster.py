@@ -14,13 +14,10 @@ class Cluster:
 
     def updateLA(self):
 
-        if(self.cost == 0):
-            print('Error!')
-
-        self.historic.append(self.cost)
-        #self.historic.append(self.cost)
-        self.meanCost = self.meanCost + \
-            (self.cost - self.meanCost) / len(self.historic)
+        if(self.getLastTransition() > -1):
+            self.historic.append(self.cost)
+            self.meanCost = self.meanCost + \
+                (self.cost - self.meanCost) / len(self.historic)
 
         if(self.cost < self.meanCost):
             beta = 0
