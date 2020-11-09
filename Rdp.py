@@ -6,10 +6,6 @@ from exceptions import NetException
 
 class Rdp:
 
-    FILENAME = "petrinet.json"
-    #FILENAME = "PNunmodified.json"
-    #FILENAME = "test.json"
-
     def __init__(self, jsonFile, loadModified):
         self.updateT = [None]
         self.conflictList = []
@@ -22,7 +18,9 @@ class Rdp:
         self.tInvariants = []
         self.nPlaces = 0
         self.nTransitions = 0
-        self.initFromFile(jsonFile, loadModified)
+        self.controlPlaces = []
+        self.controlConflicts = []
+        self.initFromFile(jsonFile, jsonFile.replace(".json", ".cfg.json"), loadModified)
 
         if loadModified == False:
             self.modifyNet()
@@ -30,33 +28,43 @@ class Rdp:
         self.initialMarking = np.copy(self.marking)
         self.clusterlist = self.defineClusterList(self.conflictList)
 
-    def initFromFile(self, fileName, loadModified):
+    def initFromFile(self, fileName, settingsFileName, loadModified):
+        
         json_file = open(fileName, "r")
-        json_data = json.load(json_file)
+        json_matrices = json.load(json_file)
+        json_file.close()
+
+        self.iPlusMatrix = np.array(json_matrices["I+"])
+        self.iMinusMatrix = np.array(json_matrices["I-"])
+        self.inhibitionMatrix = np.array(json_matrices["Inhibicion"])
+        self.marking = np.array(json_matrices["Marcado"])
+        
+        json_file = open(settingsFileName, "r")
+        json_settings = json.load(json_file)
         json_file.close()
 
         if loadModified == True:
-            #self.conflictList = json_data["Conflictos"]
-            #self.updateT = json_data["UpdateT"]
-            conflictList = json_data["Conflictos"]
-            updateT = json_data["UpdateT"]
+            conflictList = json_settings["Conflictos"]
+            updateT = json_settings["UpdateT"]
             for conflict in conflictList:
                 self.conflictList.append(self.parseTransitionsList(conflict))
             self.updateT.extend(self.parseTransitionsList(updateT))
-            self.iMatrix = np.array(json_data["Incidencia"])
+            self.iMatrix = np.array(json_matrices["Incidencia"])
+            self.controlConflicts = [False] * len(conflictList)
+            controlIndexes = json_settings["ClusterControl"]
+            for index in controlIndexes:
+                self.controlConflicts[index-1] = True
 
-        self.iPlusMatrix = np.array(json_data["I+"])
-        self.iMinusMatrix = np.array(json_data["I-"])
-        self.inhibitionMatrix = np.array(json_data["Inhibicion"])
-        self.costVector = np.array(json_data["Costos"])
-        self.marking = np.array(json_data["Marcado"])
+        self.costVector = np.array(json_settings["Costos"])
 
         self.nPlaces = self.iPlusMatrix.shape[0]
         self.nTransitions = self.iPlusMatrix.shape[1]
 
-        invariantList = json_data["Invariantes"]
-        for invariant in invariantList:
-            self.tInvariants.append(self.parseTransitionsList(invariant))
+        try:
+            places = json_settings["ControlPlaces"]
+            self.controlPlaces = self.parsePlacesList(places)
+        except:
+            pass
 
     def parseTransitionsList(self, tList):
         newtList = []
@@ -64,8 +72,15 @@ class Rdp:
             transition = int(transition.replace('T', '')) - 1
             newtList.append(transition)
         return newtList
+    
+    def parsePlacesList(self, pList):
+        newpList = []
+        for place in pList:
+            place = int(place.replace('P', '')) - 1
+            newpList.append(place)
+        return newpList
 
-    def defineClusterList(self, conflicts):  # TODO needs testings
+    def defineClusterList(self, conflicts): 
         print('Conflicts', conflicts)
         usedTransitions = []
         for conflict in conflicts:
@@ -76,13 +91,17 @@ class Rdp:
             if usedTransitions.count(T) == 0:
                 clusterZ.append(T)
         conflictList = conflicts
+        print(type(conflictList))
         conflictList.insert(0, clusterZ)
+        print(self.controlConflicts)
+        self.controlConflicts.insert(0, False)
+        print(self.controlConflicts)
         return conflictList
 
     def modifyNet(self):  # TODO
         # define conflicts and add places/transitions
-        initConflicts = self.identifyConflicts()
-        self.conflictList = self.joinConflicts(initConflicts)
+        initConflicts, controlConflicts = self.identifyConflicts()
+        self.conflictList, self.controlConflicts = self.joinConflicts(initConflicts, controlConflicts)
 
         for conflict in self.conflictList:
             self.insertPlacesTransitions(conflict)
@@ -90,63 +109,54 @@ class Rdp:
     def identifyConflicts(self):
 
         conflictMatrix = []
+        controlConflicts = []
+        index = 0
         for row in self.iMinusMatrix:
             conflict = []
             for t in range(len(row)):
                 if (row[t] > 0):
                     conflict.append(t)
+
+            # Detects Conflict 
             if (len(conflict) > 1):
                 conflictRow = [0] * self.nTransitions
                 for t in conflict:
                     conflictRow[t] = 1
                 conflictMatrix.append(conflictRow)
-                # conflictMatrix.append(conflict)
 
-        # return conflictMatrix
-        return np.asarray(conflictMatrix)
+                #Detects Control Conflicts
+                if(index in self.controlPlaces):
+                    controlConflicts.append(True)
+                else:
+                    controlConflicts.append(False)
 
-    def joinConflicts(self, conflictMatrix):
+            index+=1
 
-        for i in range(self.nTransitions):
-            shared = []
-            column = conflictMatrix[:, i]
-            for j in range(len(column)):
-                if(column[j] > 0):
-                    shared.append(j)
-            if(len(shared) > 1):
-                deleteRows = []
-                for row in range(1, len(shared)):
-                    conflictMatrix[shared[0]] = conflictMatrix[shared[0]
-                                                               ] + conflictMatrix[shared[row]]
-                    deleteRows.append(shared[row])
+        return np.asarray(conflictMatrix),controlConflicts
 
-                deleteRows.sort(reverse=True)
-                for row in deleteRows:
-                    conflictMatrix = np.delete(
-                        conflictMatrix, row, axis=0)
+    def joinConflicts(self, conflictMatrix, controlConflicts):
 
-        # conflicts = []
-        # for i in range(len(conflictMatrix)):
-        #     for j in range(len(conflictMatrix)):
-        #         if i != j:
-        #             for element in conflictMatrix[i]:
-        #                 if element in conflictMatrix[j]:
-        #                     # conflictMatrix[i] = conflictMatrix[i] + \
-        #                     #    list(
-        #                     #        set(conflictMatrix[j]) - set(conflictMatrix[i]))
-        #                     conflicts.append(conflictMatrix[i] + list(
-        #                         set(conflictMatrix[j]) - set(conflictMatrix[i])))
-        # print('joined: ', conflicts)
+        joinedConflicts, keepIndex = np.unique(conflictMatrix, return_index=True, axis=0)
 
         potentialConflicts = []
-        for row in conflictMatrix:
+        for row in joinedConflicts:
             conflict = []
             for i in range(len(row)):
                 if(row[i] > 0):
                     conflict.append(i)
             potentialConflicts.append(conflict)
 
-        return potentialConflicts
+        if(len(keepIndex) != conflictMatrix.shape[0]):
+            newControlConflict = []
+
+            for i in range(len(joinedConflicts)):
+                newControlConflict.append(False)
+                for j in range(len(conflictMatrix)):
+                    if((joinedConflicts[i]==conflictMatrix[j]).all()):
+                        newControlConflict[i] |= controlConflicts[j]
+
+            return potentialConflicts, newControlConflict
+        return potentialConflicts, controlConflicts
 
     def insertPlacesTransitions(self, conflict):
         print('Conflict')
@@ -227,7 +237,6 @@ class Rdp:
     def calcularSensibilizadas(self):
 
         # Marking restrictions
-
         T = self.iMinusMatrix.transpose()
         enabled = np.full(len(T), True)
 
@@ -255,14 +264,3 @@ class Rdp:
         self.marking = self.marking + \
             self.iMatrix[:, numTransicion]
         return self.costVector[numTransicion]
-
-    def calcularCosto(self, invariant):
-        costo = 0
-        transitions = invariant.split(';')
-        # print(transitions)
-        for transition in transitions:
-            costo += self.costVector[int(transition)]
-        # print(costo)
-        # print(self.tInvariants)
-        temp = [int(val) for val in transitions]
-        return costo, self.tInvariants.index(temp)

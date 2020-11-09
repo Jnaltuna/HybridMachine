@@ -7,20 +7,17 @@ import json
 
 class ClusterManager:
 
-    def __init__(self, clusterList, updateT, fileName):
+    def __init__(self, clusterList, updateT, control):
         self.updateT = updateT
         self.clusters = []
         self.controlClusters = []
-
-        controlIndex = self.getControlClusters(fileName)
-
         for i in range(len(clusterList)):
             automata = None
             if (i != 0):
                 automata = LearningAutomata(clusterList[i])
             cluster = Cluster(automata, clusterList[i], updateT[i])
 
-            if (i not in controlIndex):
+            if (control[i] == False):
                 self.clusters.append(cluster)
             else:
                 self.controlClusters.append(cluster)
@@ -156,13 +153,6 @@ class ClusterManager:
         actions = self.localEnabledList(
             self.clusters[cluster].transitionList, enabledList)
         return self.clusters[cluster].executeLA(actions)
-
-    def getControlClusters(self, fileName):
-        json_file = open(fileName, "r")
-        json_data = json.load(json_file)
-        json_file.close()
-
-        return json_data["ClusterControl"]
 
     def setClusterFiredTransition(self, transition):
         for cluster in self.clusters:

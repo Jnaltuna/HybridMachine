@@ -17,7 +17,7 @@ class ApnLa:
         # input()
         updateT = self.rdp.updateT
         self.clusterManager = ClusterManager(
-            clusterList, updateT, jsonFile)
+            clusterList, updateT, self.rdp.controlConflicts)
 
     def fireNext(self):
 
