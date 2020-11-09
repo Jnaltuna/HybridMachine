@@ -64,12 +64,6 @@ class ClusterManager:
 
             cluster.updateLA(min(cost), self.meanCost)
 
-            # if(9 in cluster.transitionList):
-            #    print('Cost vector: ', cost)
-            #    print('Fired T', cluster.LA.firedAction)
-            #    print('Mean cost: ', self.meanCost)
-            #    print('min cost', min(cost))
-
     def getClusterFromUpdate(self, clusterList, numT):
         for cluster in clusterList:
             if(numT == cluster.updateT):
