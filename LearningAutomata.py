@@ -2,7 +2,7 @@ import numpy as np
 import random
 
 a = 0.2  # or 0.05
-b = 0.0001
+b = 0.005
 #b = 0
 
 
@@ -16,6 +16,8 @@ class LearningAutomata:
         self.scaledProbabilityVector = []
         self.K = 0
         self.firedAction = -1
+        self.count = [0] * len(self.actionList)
+        self.limit = 10
         #print("Actions", self.actionList)
         #print("Probability", self.probabilityVector)
 
@@ -27,6 +29,12 @@ class LearningAutomata:
         #    return
         if (self.firedAction not in self.actionList):
             return
+
+        #if(self.probabilityVector[self.actionList.index(self.firedAction)] > 0.9 and beta == 0):
+        #    return
+        
+        #if(self.probabilityVector[self.actionList.index(self.firedAction)] < 0.05 and beta == 1):
+        #    return
 
         for action in self.actionList:
             actionIndex = self.actionList.index(action)
@@ -53,6 +61,13 @@ class LearningAutomata:
         self.enabledActions = enabledActions
         # Escalado de probabilidades
         #print('Enabled T: ', enabledActions)
+        for elem in self.count:
+            transition = self.actionList[self.count.index(elem)]
+            if (elem > self.limit and transition in enabledActions):
+                print('Fired ',transition)
+                self.firedAction = transition
+                self.setCount(enabledActions)
+                return self.firedAction
 
         K = 0
 
@@ -72,4 +87,14 @@ class LearningAutomata:
         self.firedAction = random.choices(
             enabledActions, scaledProbVector, k=1)[-1]
 
+        self.setCount(enabledActions)
+
         return self.firedAction
+    
+    def setCount(self, enabledActions):
+        for i in range(len(self.actionList)):
+            if(self.actionList[i] in enabledActions):
+                if(self.actionList[i] != self.firedAction):
+                    self.count[i] += 1
+                else:
+                    self.count[i] = 0
