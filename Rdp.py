@@ -81,7 +81,6 @@ class Rdp:
         return newpList
 
     def defineClusterList(self, conflicts): 
-        print('Conflicts', conflicts)
         usedTransitions = []
         for conflict in conflicts:
             usedTransitions.extend(conflict)
@@ -91,14 +90,11 @@ class Rdp:
             if usedTransitions.count(T) == 0:
                 clusterZ.append(T)
         conflictList = conflicts
-        print(type(conflictList))
         conflictList.insert(0, clusterZ)
-        print(self.controlConflicts)
         self.controlConflicts.insert(0, False)
-        print(self.controlConflicts)
         return conflictList
 
-    def modifyNet(self):  # TODO
+    def modifyNet(self):
         # define conflicts and add places/transitions
         initConflicts, controlConflicts = self.identifyConflicts()
         self.conflictList, self.controlConflicts = self.joinConflicts(initConflicts, controlConflicts)
@@ -159,8 +155,6 @@ class Rdp:
         return potentialConflicts, controlConflicts
 
     def insertPlacesTransitions(self, conflict):
-        print('Conflict')
-        print(conflict)
 
         # Para cada matriz -> 2 filas, 1 col. Marcado 2 col. Costo 1 col
         newIMinus = self.addRowsColumns(self.iMinusMatrix)

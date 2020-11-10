@@ -23,7 +23,6 @@ class ClusterManager:
                 self.controlClusters.append(cluster)
 
         self.cost = 0
-        #self.cost = 0
         self.historic = []
         self.meanCost = 0
 
@@ -36,14 +35,10 @@ class ClusterManager:
             if(fireTransition in cluster.transitionList):
                 cluster.cost = cost
 
-        #print('Cost: ', cost)
-        #print('Mean: ', self.meanCost)
-
         return
 
     def updateIfNecessary(self, numT):
         if self.isUpdate(numT):
-            # print(numT)
             cluster = self.getClusterFromUpdate(self.clusters, numT)
             if cluster == None:
                 cluster = self.getClusterFromUpdate(self.controlClusters, numT)
