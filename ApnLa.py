@@ -17,7 +17,7 @@ class ApnLa:
         # input()
         updateT = self.rdp.updateT
         self.clusterManager = ClusterManager(
-            clusterList, updateT, jsonFile, self.rdp.tInvariants)
+            clusterList, updateT, self.rdp.controlConflicts, self.rdp.tInvariants)
 
         # Definimos el string de invariantes para chequear con regex
         tinv = ';\n'.join(';'.join('%d' % x for x in y)
