@@ -6,10 +6,6 @@ from exceptions import NetException
 
 class Rdp:
 
-    FILENAME = "petrinet.json"
-    #FILENAME = "PNunmodified.json"
-    #FILENAME = "test.json"
-
     def __init__(self, jsonFile, loadModified):
         self.updateT = [None]
         self.conflictList = []
@@ -97,7 +93,6 @@ class Rdp:
         return newpList
 
     def defineClusterList(self, conflicts):
-        print('Conflicts', conflicts)
         usedTransitions = []
         for conflict in conflicts:
             usedTransitions.extend(conflict)
@@ -172,8 +167,6 @@ class Rdp:
         return potentialConflicts, controlConflicts
 
     def insertPlacesTransitions(self, conflict):
-        print('Conflict')
-        print(conflict)
 
         # Para cada matriz -> 2 filas, 1 col. Marcado 2 col. Costo 1 col
         newIMinus = self.addRowsColumns(self.iMinusMatrix)
@@ -250,7 +243,6 @@ class Rdp:
     def calcularSensibilizadas(self):
 
         # Marking restrictions
-
         T = self.iMinusMatrix.transpose()
         enabled = np.full(len(T), True)
 
@@ -269,8 +261,6 @@ class Rdp:
                     enabled[row] = False
                     break
 
-        #print('marking: ', self.marking)
-        #print('enabled: ', enabled)
         if(np.count_nonzero(enabled) == 0):
             print(self.marking)
             raise NetException("Red bloqueada")
@@ -285,10 +275,7 @@ class Rdp:
     def calcularCosto(self, invariant):
         costo = 0
         transitions = invariant.split(';')
-        # print(transitions)
         for transition in transitions:
             costo += self.costVector[int(transition)]
-        # print(costo)
-        # print(self.tInvariants)
         temp = [int(val) for val in transitions]
         return costo, self.tInvariants.index(temp)

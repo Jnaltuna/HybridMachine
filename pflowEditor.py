@@ -69,8 +69,7 @@ def obtain_elements(iPlus, iMinus, inhibition, marking):
 def modify_net(netName, newPlaces, newTransitions, newArcs):
 
     tree = ElementTree.parse(netName)
-    print('Transitions: ', newTransitions)
-    print('Places', newPlaces)
+
     for place in newPlaces:
         tree = addPlace(tree, place.label, place.tokens)
 
@@ -82,13 +81,14 @@ def modify_net(netName, newPlaces, newTransitions, newArcs):
 
     # tree.write('test.pflow')
     formated_xml = prettify(tree.getroot())
-    with open('out.pflow', 'w') as f:
+    fileName = "out.pflow"
+    with open(fileName, 'w') as f:
         f.write(formated_xml)
+    print('Red modificada exitosamente en', fileName)
 
 
 x = 0
 y = 0
-
 
 def addPlace(tree, placeID, marking):
     global x
@@ -107,8 +107,8 @@ def addPlace(tree, placeID, marking):
     place_tokens.text = str(marking)
     place_isStatic = SubElement(place, 'isStatic')
     place_isStatic.text = 'false'
-    x += 10
-    y += 10
+    x += 20
+    y += 20
     #mod = prettify(tree.getroot())
 
     # with open('test.pflow', 'w') as f:

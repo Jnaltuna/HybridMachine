@@ -11,10 +11,7 @@ class ApnLa:
         self.rdp = Rdp(jsonFile, loadModified)
 
         clusterList = self.rdp.clusterlist
-        print('Cluster list: ')
-        for x in range(len(clusterList)):
-            print(clusterList[x])
-        # input()
+        
         updateT = self.rdp.updateT
         self.clusterManager = ClusterManager(
             clusterList, updateT, self.rdp.controlConflicts, self.rdp.tInvariants)
@@ -24,7 +21,6 @@ class ApnLa:
                           for y in self.rdp.tInvariants)
 
         self.invariantStr = "\n{0!s};\n".format(tinv)
-        print('Invariantes: ', self.invariantStr)
 
         self.partialInvariants = []
 
@@ -33,8 +29,7 @@ class ApnLa:
         enabledT = self.rdp.calcularSensibilizadas()
 
         fireTransition = self.clusterManager.getFireTransition(enabledT)
-        #print('Fired Transition:', fireTransition)
-        # firedCost = self.rdp.fire(fireTransition)
+
         self.rdp.fire(fireTransition)
 
         self.invariantAnalysis(fireTransition)
@@ -42,9 +37,6 @@ class ApnLa:
         self.clusterManager.setClusterFiredTransition(fireTransition)
 
         self.clusterManager.updateIfNecessary(fireTransition)
-
-        # print(self.partialInvariants)
-        #input("\nPress Enter to continue...\n")
 
         return
 
@@ -67,10 +59,6 @@ class ApnLa:
                     costo, invNum = self.rdp.calcularCosto(
                         '{}{}'.format(partInv, fireTransition))
 
-                    # print(costo)
-                    # print(invNum)
-                    # input()
-
                     self.clusterManager.updateCost(costo, invNum)
 
                     self.partialInvariants.remove(partInv)
@@ -80,8 +68,6 @@ class ApnLa:
                         partInv)] += '{};'.format(fireTransition)
                     break
 
-            # for inv in self.rdp.tInvariants:
-            # self.clusterManager.updateCost(firedCost)
         if(newPartial):
             self.partialInvariants.append('{};'.format(fireTransition))
 
@@ -90,3 +76,13 @@ class ApnLa:
         self.rdp.costVector[6] = 50
         self.rdp.costVector[4] = 25
         print(self.rdp.costVector)
+
+    def printClusters(self):
+        print("\nCLUSTERS:\n")
+        print("\tRegular clusters")
+        for cluster in self.clusterManager.clusters:
+            print('\t\t*',cluster.transitionList)
+        if (len(self.clusterManager.controlClusters) > 0):
+            print("\tControl clusters")
+            for cluster in self.clusterManager.controlClusters:
+                print('\t\t*',cluster.transitionList)

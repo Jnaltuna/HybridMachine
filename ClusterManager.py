@@ -39,8 +39,6 @@ class ClusterManager:
         self.meanCost = self.meanCost + \
             (cost - self.meanCost) / len(self.historic)
         #self.meanCost = statistics.mean(self.historic[-50:])
-        #print('Cost: ', cost)
-        #print('Mean: ', self.meanCost)
 
         return
 
@@ -113,16 +111,6 @@ class ClusterManager:
             return None, [selectedTransition]
         else:
             return self.selectCluster(enabled, enabledClusters[1])
-
-        #TODO: CAMBIAR
-        # for cluster in enabledClusters:
-        #     localEnabled = self.getClusterEnabledTransitions(
-        #         cluster, enabled)
-        #     clusterProb.append(len(localEnabled)/len(enabled))
-        #     clusterEnabledTransitions.append(localEnabled)
-        # selectedCluster = random.choices(enabledClusters, clusterProb, k=1)[-1]
-
-        # return selectedCluster, clusterEnabledTransitions[enabledClusters.index(selectedCluster)]
 
     def enabledClusters(self, enabledTransitions):
 
