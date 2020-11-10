@@ -2,3 +2,4 @@
 results.txt
 *.pflow
 *.json
+.vscode/
