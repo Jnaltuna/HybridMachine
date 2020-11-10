@@ -1,3 +1,4 @@
 *.pyc
 results.txt
-out.pflow
+*.pflow
+*.json
