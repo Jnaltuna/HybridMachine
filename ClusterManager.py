@@ -100,6 +100,10 @@ class ClusterManager:
 
         enabledClusters = self.enabledClusters(enabled)
 
+        for cluster in enabledClusters[1]:
+            if(cluster.LA == None):
+                return cluster, self.getClusterEnabledTransitions(cluster,enabled)
+
         if(len(enabledClusters[0]) > 0):
             controlCluster, clusterEnabledTransitions = self.selectCluster(
                 enabled, enabledClusters[0])
