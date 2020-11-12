@@ -30,10 +30,12 @@ class ClusterManager:
 
         for cluster in self.clusters:
             if(fireTransition in cluster.transitionList):
-                cluster.cost = cost
+                #cluster.cost = cost
+                cluster.updateTransitionCost(cost, fireTransition)
         for cluster in self.controlClusters:
             if(fireTransition in cluster.transitionList):
-                cluster.cost = cost
+                cluster.updateTransitionCost(cost, fireTransition)
+                #cluster.cost = cost
 
         return
 
