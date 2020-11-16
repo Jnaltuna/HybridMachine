@@ -10,7 +10,13 @@ class Cluster:
 
     def updateLA(self, cost, meanCost):
 
-        if(cost < meanCost):
+        #if(0 in self.transitionList):
+        #    if(8 in self.transitionList):
+        #        print("---")
+        #        print(cost)
+        #        print(meanCost)
+
+        if(cost <= meanCost):
             beta = 0
         else:
             beta = 1

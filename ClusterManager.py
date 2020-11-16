@@ -27,6 +27,11 @@ class ClusterManager:
         self.invCost = []
         for inv in tInvariants:
             self.invCost.append(0)
+        self.invHistoric = []
+        self.invMean = []
+        for t in tInvariants:
+            self.invHistoric.append([])
+            self.invMean.append(0)
         self.tInvariants = tInvariants
         #self.cost = 0
         self.historic = []
@@ -35,10 +40,12 @@ class ClusterManager:
     def updateCost(self, cost, invNum):
 
         self.invCost[invNum] = cost
-        self.historic.append(cost)
-        self.meanCost = self.meanCost + \
-            (cost - self.meanCost) / len(self.historic)
+        self.invHistoric[invNum].append(cost)
+        #self.historic.append(cost)
+        #self.meanCost = self.meanCost + \
+        #    (cost - self.meanCost) / len(self.historic)
         #self.meanCost = statistics.mean(self.historic[-50:])
+        self.invMean[invNum] = statistics.mean(self.invHistoric[invNum][-5:])
 
         return
 
@@ -58,7 +65,12 @@ class ClusterManager:
             if not cost:
                 return
 
-            cluster.updateLA(min(cost), self.meanCost)
+            mean = [val for val in self.invMean if val != 0]
+
+            if not mean:
+                return
+
+            cluster.updateLA(min(cost), min(mean))
 
     def getClusterFromUpdate(self, clusterList, numT):
         for cluster in clusterList:
