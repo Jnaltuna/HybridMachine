@@ -146,6 +146,9 @@ class Rdp:
 
         joinedConflicts, keepIndex = np.unique(conflictMatrix, return_index=True, axis=0)
 
+        if(len(keepIndex) == conflictMatrix.shape[0]):
+            joinedConflicts = conflictMatrix
+
         potentialConflicts = []
         for row in joinedConflicts:
             conflict = []
