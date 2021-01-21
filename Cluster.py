@@ -26,7 +26,18 @@ class Cluster:
             self.meanCost = self.meanCost + \
                 (self.cost - self.meanCost) / len(self.historic)
 
-        if(self.cost <= min(self.transitionMean)):
+        meanValues = [val for val in self.transitionMean if val != 0]
+
+        if not meanValues:
+            return
+
+        if(statistics.mean(meanValues) == min(meanValues)):
+            selectedMean=-1
+        else:
+            selectedMean=min(meanValues)
+
+
+        if(self.cost <= selectedMean):
             beta = 0
         else:
             beta = 1
