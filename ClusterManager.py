@@ -70,7 +70,12 @@ class ClusterManager:
             if not mean:
                 return
 
-            cluster.updateLA(min(cost), min(mean))
+            if(statistics.mean(self.invMean) == min(mean)):
+                selectedMean=-1
+            else:
+                selectedMean=min(mean)
+
+            cluster.updateLA(min(cost), selectedMean)
 
     def getClusterFromUpdate(self, clusterList, numT):
         for cluster in clusterList:
