@@ -31,11 +31,10 @@ class Cluster:
         if not meanValues:
             return
 
-        if(statistics.mean(meanValues) == min(meanValues)):
+        if(statistics.fmean(meanValues) == min(meanValues)):
             selectedMean=-1
         else:
             selectedMean=min(meanValues)
-
 
         if(self.cost <= selectedMean):
             beta = 0
