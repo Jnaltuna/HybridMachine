@@ -70,7 +70,7 @@ class ClusterManager:
             if not mean:
                 return
 
-            if(statistics.mean(self.invMean) == min(mean)):
+            if(statistics.fmean(self.invMean) == min(mean)):
                 selectedMean=-1
             else:
                 selectedMean=min(mean)
