@@ -6,6 +6,7 @@ from exceptions import NetException
 import pflowEditor as editor
 import argparse
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 def main():
@@ -20,6 +21,9 @@ def main():
     f = open("results.txt", "w")
     for j in range(int(args.repeat)):
         block = False
+        cantDisparos = []
+        probabilidades = []
+
         print("Inicializando iteracion ",j)
         apn = ApnLa(args.jsonFile[0], loadModified)
 
@@ -37,7 +41,24 @@ def main():
             if (verbose and i % 2000 == 0):
                 print(i)
                 printClustersProbabilities(apn)
-                
+
+            if (i == 1):
+                probs = apn.getClusterProbs()
+                for elem in probs:
+                    probabilidades.append([])
+                    for trans in elem:
+                        probabilidades[-1].append([])
+
+
+            if(i % 50 == 0 or i == 1):
+                cantDisparos.append(i)
+                probs = apn.getClusterProbs()
+                for l in range(len(probs)):
+                    for k in range(len(probs[l])):
+                        probabilidades[l][k].append(probs[l][k])
+
+        showPlots(cantDisparos,probabilidades,apn.getClusterTransitions())
+
         if(block != True):
             writeResults (f, apn)
 
@@ -124,6 +145,17 @@ def editPflow(apn, pflowFile):
 
     editor.modify_net(pflowFile, newPlaces, newTransitions, newArcs)
 
+def showPlots(cantDisparos, probabilidades, labels):
+    types = ['-','--','-.',':','.',',']
+    fig, axs = plt.subplots(round((len(probabilidades)+1)/2), 2, figsize=(12,12))
+    for l in range(len(probabilidades)):
+        for k in range(len(probabilidades[l])):
+            label = "T" + str(labels[l][k]+1)
+            axs.flat[l].plot(cantDisparos,probabilidades[l][k], types[k], label=label, alpha=0.7)
+        axs.flat[l].legend()
+    if(len(probabilidades) % 2 != 0):
+        axs.flat[-1].set_visible(False)
+    fig.savefig('plot.png', dpi=300)
 
 if __name__ == "__main__":
     main()

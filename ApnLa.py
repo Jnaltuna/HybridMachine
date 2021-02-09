@@ -86,3 +86,22 @@ class ApnLa:
             print("\tControl clusters")
             for cluster in self.clusterManager.controlClusters:
                 print('\t\t*',cluster.transitionList)
+
+
+    def getClusterProbs(self):
+        probs=[]
+        for cluster in self.clusterManager.clusters:
+            if (cluster.LA != None):
+                probs.append(cluster.LA.probabilityVector.tolist())
+        for cluster in self.clusterManager.controlClusters:
+            probs.append(cluster.LA.probabilityVector.tolist())
+        return probs
+
+    def getClusterTransitions(self):
+        labels = []
+        for cluster in self.clusterManager.clusters:
+            if (cluster.LA != None):
+                labels.append(cluster.transitionList)
+        for cluster in self.clusterManager.controlClusters:
+            labels.append(cluster.transitionList)
+        return labels
