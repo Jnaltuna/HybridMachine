@@ -3,3 +3,4 @@ results.txt
 *.json
 *.pflow
 .vscode/
+plot.png
