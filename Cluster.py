@@ -1,6 +1,3 @@
-from LearningAutomata import LearningAutomata
-
-
 class Cluster:
 
     def __init__(self, automata, transitionList, updateT):
@@ -8,21 +5,8 @@ class Cluster:
         self.transitionList = transitionList
         self.LA = automata
 
-    def updateLA(self, cost, meanCost):
-
-        #if(0 in self.transitionList):
-        #    if(8 in self.transitionList):
-        #        print("---")
-        #        print(cost)
-        #        print(meanCost)
-
-        if(cost <= meanCost):
-            beta = 0
-        else:
-            beta = 1
-
+    def updateLA(self, beta):
         self.LA.update(beta)
-
         return
 
     def executeLA(self, enabledActions):
@@ -30,5 +14,5 @@ class Cluster:
         return fireT
 
     def setLastTransition(self, transition):
-        if(self.LA != None):
+        if self.LA is not None:
             self.LA.firedAction = transition

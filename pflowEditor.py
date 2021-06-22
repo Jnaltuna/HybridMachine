@@ -1,11 +1,7 @@
-import os
-import numpy as np
-import time
 import re
-import sys
-from xml.etree.ElementTree import Element, SubElement, Comment, tostring
-from xml.etree import ElementTree
 from xml.dom import minidom
+from xml.etree import ElementTree
+from xml.etree.ElementTree import SubElement
 
 
 class Arc:
@@ -20,13 +16,13 @@ class Place:
     def __init__(self, id, tokens):
         self.id = id
         self.tokens = tokens
-        self.label = "P"+str(id+1)
+        self.label = "P" + str(id + 1)
 
 
 class Transition:
     def __init__(self, id):
         self.id = id
-        self.label = "T"+str(id+1)
+        self.label = "T" + str(id + 1)
 
 
 class PetriShape:
@@ -37,7 +33,6 @@ class PetriShape:
 
 
 def obtain_elements(iPlus, iMinus, inhibition, marking):
-
     nPlaces = iPlus.shape[0]
     nTransitions = iPlus.shape[1]
 
@@ -53,13 +48,13 @@ def obtain_elements(iPlus, iMinus, inhibition, marking):
 
     for i in range(nPlaces):
         for j in range(nTransitions):
-            if(iPlus[i][j] > 0):
+            if iPlus[i][j] > 0:
                 arcsList.append(
                     Arc('regular', transitionsList[j].label, placesList[i].label, iPlus[i][j]))
-            if(iMinus[i][j] > 0):
+            if iMinus[i][j] > 0:
                 arcsList.append(
                     Arc('regular', placesList[i].label, transitionsList[j].label, iMinus[i][j]))
-            if(inhibition[i][j]):
+            if inhibition[i][j]:
                 arcsList.append(
                     Arc('inhibitor', placesList[i].label, transitionsList[j].label, inhibition[i][j]))
 
@@ -67,7 +62,6 @@ def obtain_elements(iPlus, iMinus, inhibition, marking):
 
 
 def modify_net(netName, newPlaces, newTransitions, newArcs):
-
     tree = ElementTree.parse(netName)
 
     for place in newPlaces:
@@ -90,6 +84,7 @@ def modify_net(netName, newPlaces, newTransitions, newArcs):
 x = 0
 y = 0
 
+
 def addPlace(tree, placeID, marking):
     global x
     global y
@@ -109,7 +104,7 @@ def addPlace(tree, placeID, marking):
     place_isStatic.text = 'false'
     x += 20
     y += 20
-    #mod = prettify(tree.getroot())
+    # mod = prettify(tree.getroot())
 
     # with open('test.pflow', 'w') as f:
     #    f.write(ElementTree.tostring(tree.getroot(), 'utf-8'))
@@ -149,7 +144,7 @@ def addTransition(tree, transitionID):
     t_properties.set('var2', '1.0')
     x += 10
     y += 10
-    #mod = prettify(tree.getroot())
+    # mod = prettify(tree.getroot())
 
     # with open('test.pflow', 'w') as f:
     #    f.write(ElementTree.tostring(tree.getroot(), 'utf-8'))
@@ -175,8 +170,8 @@ def prettify(elem):
     rough_string = ElementTree.tostring(elem, 'utf-8')
     decoded = rough_string.decode('utf-8')
     replaced = re.sub('\n *', '', decoded)
-    #rough_string = rough_string.decode('utf-8').replace('\n', '')
-    #rough_string = rough_string.replace(' ', '')
+    # rough_string = rough_string.decode('utf-8').replace('\n', '')
+    # rough_string = rough_string.replace(' ', '')
     reparsed = minidom.parseString(replaced)
     prettyString = reparsed.toprettyxml(indent="  ")
     return prettyString

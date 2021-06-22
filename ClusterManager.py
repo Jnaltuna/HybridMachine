@@ -1,85 +1,49 @@
 from Cluster import Cluster
 from LearningAutomata import LearningAutomata
-import numpy as np
 import random
-import json
-import statistics
 
 
+# Administers all clusters asociated to a petri net.
 class ClusterManager:
 
-    def __init__(self, clusterList, updateT, control, tInvariants):
+    def __init__(self, clusterList, updateT, control, tInvariants, costManager):
         self.updateT = updateT
         self.clusters = []
         self.controlClusters = []
+        self.costManager = costManager
 
+        # Creation of all individual clusters and respective learning automata.
         for i in range(len(clusterList)):
             automata = None
-            if (i != 0):
+            if i != 0:
                 automata = LearningAutomata(clusterList[i])
             cluster = Cluster(automata, clusterList[i], updateT[i])
 
-            if (control[i] == False):
+            if not control[i]:
                 self.clusters.append(cluster)
             else:
                 self.controlClusters.append(cluster)
 
-        self.invCost = []
-        for inv in tInvariants:
-            self.invCost.append(0)
-        self.invHistoric = []
-        self.invMean = []
-        for t in tInvariants:
-            self.invHistoric.append([])
-            self.invMean.append(0)
         self.tInvariants = tInvariants
-        #self.cost = 0
-        self.historic = []
-        self.meanCost = 0
 
-    def updateCost(self, cost, invNum):
-
-        self.invCost[invNum] = cost
-        self.invHistoric[invNum].append(cost)
-        #self.historic.append(cost)
-        #self.meanCost = self.meanCost + \
-        #    (cost - self.meanCost) / len(self.historic)
-        #self.meanCost = statistics.mean(self.historic[-50:])
-        self.invMean[invNum] = statistics.mean(self.invHistoric[invNum][-5:])
-
+    def updateCost(self, fireTransition, cost):
+        self.costManager.transitionFired(fireTransition, cost)
         return
 
     def updateIfNecessary(self, numT):
         if self.isUpdate(numT):
             cluster = self.getClusterFromUpdate(self.clusters, numT)
-            if cluster == None:
+            if cluster is None:
                 cluster = self.getClusterFromUpdate(self.controlClusters, numT)
 
-            cost = []
-            for tinv in self.tInvariants:
-                if (cluster.LA.firedAction in tinv):
-                    cost.append(self.invCost[self.tInvariants.index(tinv)])
-
-            cost = [val for val in cost if val != 0]
-
-            if not cost:
+            beta = self.costManager.getBeta(cluster)
+            if beta == -1:
                 return
-
-            mean = [val for val in self.invMean if val != 0]
-
-            if not mean:
-                return
-
-            if(statistics.fmean(self.invMean) == min(mean)):
-                selectedMean=-1
-            else:
-                selectedMean=min(mean)
-
-            cluster.updateLA(min(cost), selectedMean)
+            cluster.updateLA(beta)
 
     def getClusterFromUpdate(self, clusterList, numT):
         for cluster in clusterList:
-            if(numT == cluster.updateT):
+            if numT == cluster.updateT:
                 return cluster
         return None
 
@@ -103,7 +67,7 @@ class ClusterManager:
         selectedCluster, localEnabled = self.getFireCluster(enabledTransitions)
 
         selectedTransition = -1
-        if(selectedCluster == None):
+        if selectedCluster is None:
             selectedTransition = localEnabled[0]
         else:
             if self.clusters.index(selectedCluster) == 0:
@@ -118,16 +82,16 @@ class ClusterManager:
         enabledClusters = self.enabledClusters(enabled)
 
         for cluster in enabledClusters[1]:
-            if(cluster.LA == None):
-                return cluster, self.getClusterEnabledTransitions(cluster,enabled)
+            if cluster.LA is None:
+                return cluster, self.getClusterEnabledTransitions(cluster, enabled)
 
-        if(len(enabledClusters[0]) > 0):
+        if len(enabledClusters[0]) > 0:
             controlCluster, clusterEnabledTransitions = self.selectCluster(
                 enabled, enabledClusters[0])
             selectedTransition = controlCluster.executeLA(
                 clusterEnabledTransitions)
             for cluster in enabledClusters[1]:
-                if (selectedTransition in cluster.transitionList):
+                if selectedTransition in cluster.transitionList:
                     return cluster, self.getClusterEnabledTransitions(cluster, enabled)
             return None, [selectedTransition]
         else:
@@ -135,14 +99,12 @@ class ClusterManager:
 
     def enabledClusters(self, enabledTransitions):
 
-        enabledClusters = []
-
-        enabledClusters.append([])
+        enabledClusters = [[]]
 
         for cluster in self.controlClusters:
             for t in range(len(enabledTransitions)):
-                if(enabledTransitions[t]):
-                    if(t in cluster.transitionList):
+                if enabledTransitions[t]:
+                    if t in cluster.transitionList:
                         enabledClusters[0].append(cluster)
                         break
 
@@ -150,8 +112,8 @@ class ClusterManager:
 
         for cluster in self.clusters:
             for t in range(len(enabledTransitions)):
-                if(enabledTransitions[t]):
-                    if(t in cluster.transitionList):
+                if enabledTransitions[t]:
+                    if t in cluster.transitionList:
                         enabledClusters[1].append(cluster)
                         break
 
@@ -162,7 +124,7 @@ class ClusterManager:
         localEnabled = []
 
         for t in cluster.transitionList:
-            if enabledTransitions[t] == True:
+            if enabledTransitions[t]:
                 localEnabled.append(t)
 
         return localEnabled
@@ -174,7 +136,7 @@ class ClusterManager:
         for cluster in enabledClusters:
             localEnabled = self.getClusterEnabledTransitions(
                 cluster, enabledTransitions)
-            clusterProb.append(len(localEnabled)/len(enabledTransitions))
+            clusterProb.append(len(localEnabled) / len(enabledTransitions))
             clusterEnabledTransitions.append(localEnabled)
         selectedCluster = random.choices(enabledClusters, clusterProb, k=1)[-1]
 
@@ -187,5 +149,10 @@ class ClusterManager:
 
     def setClusterFiredTransition(self, transition):
         for cluster in self.clusters:
-            if(transition in cluster.transitionList):
+            if transition in cluster.transitionList:
+                cluster.setLastTransition(transition)
+
+    def setControlClusterFiredTransition(self, transition):
+        for cluster in self.controlClusters:
+            if transition in cluster.transitionList:
                 cluster.setLastTransition(transition)

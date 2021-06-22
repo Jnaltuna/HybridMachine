@@ -1,6 +1,5 @@
 import json
 import numpy as np
-import sys
 from exceptions import NetException
 
 
@@ -18,20 +17,26 @@ class Rdp:
         self.tInvariants = []
         self.nPlaces = 0
         self.nTransitions = 0
-        self.controlPlaces=[]
+        self.controlPlaces = []
         self.controlConflicts = []
+
         self.initFromFile(jsonFile, jsonFile.replace(".json", ".cfg.json"), loadModified)
 
-        if loadModified == False:
+        if not loadModified:
             self.modifyNet()
 
         self.initialMarking = np.copy(self.marking)
         self.clusterlist = self.defineClusterList(self.conflictList)
 
     def initFromFile(self, fileName, settingsFileName, loadModified):
-        
+
+        # Load data from both files
         json_file = open(fileName, "r")
         json_matrices = json.load(json_file)
+        json_file.close()
+
+        json_file = open(settingsFileName, "r")
+        json_settings = json.load(json_file)
         json_file.close()
 
         # Matrices
@@ -40,72 +45,65 @@ class Rdp:
         self.iMinusMatrix = np.array(json_matrices["I-"])
         self.inhibitionMatrix = np.array(json_matrices["Inhibicion"])
 
-        json_file = open(settingsFileName, "r")
-        json_settings = json.load(json_file)
-        json_file.close()
-
-        if loadModified == True:
+        if loadModified:
             # Conflicts
             conflictList = json_settings["Conflictos"]
             for conflict in conflictList:
-                self.conflictList.append(self.parseTransitionsList(conflict))
+                self.conflictList.append(self.parseElementList(conflict, 'T'))
             # Update Transitions
             updateT = json_settings["UpdateT"]
-            self.updateT.extend(self.parseTransitionsList(updateT))
+            self.updateT.extend(self.parseElementList(updateT, 'T'))
             # I Matrix
             self.iMatrix = np.array(json_matrices["Incidencia"])
             # Control Conflicts
             controlIndexes = json_settings["ClusterControl"]
             self.controlConflicts = [False] * len(conflictList)
             for index in controlIndexes:
-                self.controlConflicts[index-1] = True
-        
+                self.controlConflicts[index - 1] = True
+
         # Costs
         self.costVector = np.array(json_settings["Costos"])
 
         # Invariants
         invariantList = json_settings["Invariantes"]
         for invariant in invariantList:
-            self.tInvariants.append(self.parseTransitionsList(invariant))
+            self.tInvariants.append(self.parseElementList(invariant, 'T'))
 
         try:
             places = json_settings["ControlPlaces"]
-            self.controlPlaces = self.parsePlacesList(places)
+            self.controlPlaces = self.parseElementList(places, 'P')
         except:
             pass
 
         self.nPlaces = self.iPlusMatrix.shape[0]
         self.nTransitions = self.iPlusMatrix.shape[1]
 
+    # Removes elemType from each member in elist. Substracts 1 to follow matrix notation
+    def parseElementList(self, elist, elemType):
+        newList = []
+        for elem in elist:
+            elem = int(elem.replace(elemType, '')) - 1
+            newList.append(elem)
+        return newList
 
-    def parseTransitionsList(self, tList):
-        newtList = []
-        for transition in tList:
-            transition = int(transition.replace('T', '')) - 1
-            newtList.append(transition)
-        return newtList
-
-    def parsePlacesList(self, pList):
-        newpList = []
-        for place in pList:
-            place = int(place.replace('P', '')) - 1
-            newpList.append(place)
-        return newpList
-
+    # Cluster list composed of conflicts + cluster0
     def defineClusterList(self, conflicts):
         usedTransitions = []
         for conflict in conflicts:
             usedTransitions.extend(conflict)
 
+        # Cluster0 composed of all transitions not in any conflict
         clusterZ = []
         for T in range(self.nTransitions):
             if usedTransitions.count(T) == 0:
                 clusterZ.append(T)
+
         conflictList = conflicts
         conflictList.insert(0, clusterZ)
         self.controlConflicts.insert(0, False)
         return conflictList
 
+    # Adds places and transitions to petri net matrices based on existing conflicts
     def modifyNet(self):
         # define conflicts and add places/transitions
         initConflicts, controlConflicts = self.identifyConflicts()
@@ -122,53 +120,54 @@ class Rdp:
         for row in self.iMinusMatrix:
             conflict = []
             for t in range(len(row)):
-                if (row[t] > 0):
+                if row[t] > 0:
                     conflict.append(t)
 
             # Detects Conflict 
-            if (len(conflict) > 1):
+            if len(conflict) > 1:
                 conflictRow = [0] * self.nTransitions
                 for t in conflict:
                     conflictRow[t] = 1
                 conflictMatrix.append(conflictRow)
 
-                #Detects Control Conflicts
-                if(index in self.controlPlaces):
+                # Detects Control Conflicts
+                if index in self.controlPlaces:
                     controlConflicts.append(True)
                 else:
                     controlConflicts.append(False)
 
-            index+=1
+            index += 1
 
-        return np.asarray(conflictMatrix),controlConflicts
+        return np.asarray(conflictMatrix), controlConflicts
 
     def joinConflicts(self, conflictMatrix, controlConflicts):
 
         joinedConflicts, keepIndex = np.unique(conflictMatrix, return_index=True, axis=0)
 
-        if(len(keepIndex) == conflictMatrix.shape[0]):
+        if len(keepIndex) == conflictMatrix.shape[0]:
             joinedConflicts = conflictMatrix
 
         potentialConflicts = []
         for row in joinedConflicts:
             conflict = []
             for i in range(len(row)):
-                if(row[i] > 0):
+                if row[i] > 0:
                     conflict.append(i)
             potentialConflicts.append(conflict)
 
-        if(len(keepIndex) != conflictMatrix.shape[0]):
+        if len(keepIndex) != conflictMatrix.shape[0]:
             newControlConflict = []
 
             for i in range(len(joinedConflicts)):
                 newControlConflict.append(False)
                 for j in range(len(conflictMatrix)):
-                    if((joinedConflicts[i]==conflictMatrix[j]).all()):
+                    if (joinedConflicts[i] == conflictMatrix[j]).all():
                         newControlConflict[i] |= controlConflicts[j]
 
             return potentialConflicts, newControlConflict
         return potentialConflicts, controlConflicts
 
+    # Adds update transition and associated places to the net matrices
     def insertPlacesTransitions(self, conflict):
 
         # Para cada matriz -> 2 filas, 1 col. Marcado 2 col. Costo 1 col
@@ -195,7 +194,7 @@ class Rdp:
 
         input_transitions = np.zeros(self.nTransitions)
         for j in range(len(prePlaces)):
-            if(prePlaces[j]):
+            if prePlaces[j]:
                 input_transitions = np.logical_or(
                     input_transitions, self.iPlusMatrix[j, :])
         newIPlus[-2, :-1] = input_transitions
@@ -217,10 +216,10 @@ class Rdp:
         getsToken = np.isin(True, prePlacesMarking)
         newMarking = np.append(self.marking, [0, getsToken])
 
-        # Cost
+        # Cost: 0 en la T agregada
         newCost = np.append(self.costVector, 0)
 
-        # Replacing
+        # Reemplazando
         self.iMinusMatrix = newIMinus
         self.iPlusMatrix = newIPlus
         self.iMatrix = newIMatrix
@@ -235,12 +234,13 @@ class Rdp:
 
         return
 
+    # Adds 2 rows and 1 column to the matrix.
     def addRowsColumns(self, matrix):
         newMatrix = np.append(matrix, np.zeros(
             (self.nPlaces, 1)), axis=1)
 
         newMatrix = np.append(newMatrix, np.zeros(
-            (2, self.nTransitions+1)), axis=0)
+            (2, self.nTransitions + 1)), axis=0)
         return newMatrix
 
     def calcularSensibilizadas(self):
@@ -251,7 +251,7 @@ class Rdp:
 
         for row in range(len(T)):
             for i in range(len(T[row])):
-                if(self.marking[i] < T[row][i]):
+                if self.marking[i] < T[row][i]:
                     enabled[row] = False
                     break
 
@@ -260,11 +260,12 @@ class Rdp:
 
         for row in range(len(T)):
             for i in range(len(T[row])):
-                if(T[row][i] != 0 and T[row][i] <= self.marking[i]):
+                if T[row][i] != 0 and T[row][i] <= self.marking[i]:
                     enabled[row] = False
                     break
 
-        if(np.count_nonzero(enabled) == 0):
+        # Raise exception when net is blocked to halt progress
+        if np.count_nonzero(enabled) == 0:
             print(self.marking)
             raise NetException("Red bloqueada")
 
@@ -272,9 +273,10 @@ class Rdp:
 
     def fire(self, numTransicion):
         self.marking = self.marking + \
-            self.iMatrix[:, numTransicion]
+                       self.iMatrix[:, numTransicion]
         return self.costVector[numTransicion]
 
+    # Returns current cost for an invariant and its index.
     def calcularCosto(self, invariant):
         costo = 0
         transitions = invariant.split(';')
